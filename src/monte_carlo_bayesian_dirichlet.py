@@ -70,27 +70,18 @@ N_SIMULATIONS = 10000
 RANDOM_SEED = 42
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
-# │           方案 A: 行业二分类 Dirichlet 先验参数                              │
+# │           方案 A: 纯实力驱动的动态贝叶斯模型 (Pure Skill & Momentum)             │
 # └─────────────────────────────────────────────────────────────────────────────┘
 
-# "自带粉丝群体"行业列表
-BUILT_IN_FANBASE_INDUSTRIES = {
-    'TV Personality',
-    'Social Media Personality', 
-    'Social media personality',  # 数据中有大小写不一致
-    'Politician',
-    'Radio Personality',
-    'Reality Star',              # 如果存在
-}
-
-# 两类选手的 α 值
-ALPHA_FANBASE = 1.2    # "自带粉丝群体"选手：更可能获得高粉丝份额
-ALPHA_REGULAR = 0.8    # "普通选手"：标准稀疏解先验
+# 移除行业先验，避免循环论证。
+# 初始 α 对所有选手一视同仁。
+INITIAL_ALPHA = 1.0    # 初始无信息先验 (Uniform / Slight Sparsity)
 
 # 时间动态参数
 LEARNING_RATE = 0.4
 EVIDENCE_BOOST = 5.0
 MIN_ALPHA = 0.1
+SKILL_IMPACT_FACTOR = 0.3  # 增加实力权重，补偿行业先验的缺失 (原为 0.2)
 
 
 # =============================================================================
@@ -101,7 +92,7 @@ class WeekState:
     """State information passed between weeks"""
     alpha: np.ndarray
     contestant_names: List[str]
-    contestant_industries: List[str]
+    # contestant_industries removed
     
     @property
     def alpha_sum(self) -> float:
@@ -113,140 +104,70 @@ class WeekState:
 
 
 # =============================================================================
-# Load Industry Information
+# Core Bayesian Functions
 # =============================================================================
-def load_industry_mapping() -> Dict[str, str]:
+def initialize_priors(contestant_names: List[str]) -> np.ndarray:
     """
-    Load celebrity_industry mapping from raw data.
-    
-    Returns:
-        Dict mapping celebrity_name -> celebrity_industry
-    """
-    raw_df = pd.read_csv(RAW_DATA_PATH)
-    
-    # Clean column names
-    raw_df.columns = raw_df.columns.str.strip().str.lower().str.replace(' ', '_')
-    
-    # Create mapping
-    industry_map = dict(zip(
-        raw_df['celebrity_name'].str.strip(),
-        raw_df['celebrity_industry'].str.strip()
-    ))
-    
-    return industry_map
-
-
-def classify_industry(industry: str) -> str:
-    """
-    Classify industry into 'fanbase' or 'regular'.
-    
-    Args:
-        industry: Raw industry string
-        
-    Returns:
-        'fanbase' or 'regular'
-    """
-    if pd.isna(industry):
-        return 'regular'
-    
-    industry_clean = industry.strip()
-    
-    if industry_clean in BUILT_IN_FANBASE_INDUSTRIES:
-        return 'fanbase'
-    else:
-        return 'regular'
-
-
-def get_alpha_by_industry(industry: str) -> float:
-    """
-    Get Dirichlet α value based on industry classification.
-    
-    Args:
-        industry: Raw industry string
-        
-    Returns:
-        α value for Dirichlet distribution
-    """
-    classification = classify_industry(industry)
-    
-    if classification == 'fanbase':
-        return ALPHA_FANBASE
-    else:
-        return ALPHA_REGULAR
-
-
-# =============================================================================
-# Core Bayesian Functions with Industry Prior
-# =============================================================================
-def initialize_industry_prior(
-    contestant_names: List[str],
-    industry_map: Dict[str, str]
-) -> Tuple[np.ndarray, List[str]]:
-    """
-    Initialize Dirichlet prior based on industry classification.
+    Initialize Dirichlet prior (Uniform).
     
     Args:
         contestant_names: List of contestant names
-        industry_map: Name -> Industry mapping
         
     Returns:
-        (alpha_array, industry_list)
+        alpha_array
     """
-    alpha_list = []
-    industry_list = []
-    
-    for name in contestant_names:
-        industry = industry_map.get(name, 'Unknown')
-        alpha = get_alpha_by_industry(industry)
-        
-        alpha_list.append(alpha)
-        industry_list.append(industry)
-    
-    return np.array(alpha_list), industry_list
+    n = len(contestant_names)
+    return np.full(n, INITIAL_ALPHA)
 
 
 def align_prior_to_current(
     prev_state: WeekState,
-    current_names: List[str],
-    industry_map: Dict[str, str]
-) -> Tuple[np.ndarray, List[str]]:
+    current_names: List[str]
+) -> np.ndarray:
     """
     Align previous week's posterior to current week's contestants.
     
     Args:
         prev_state: Previous week's state
         current_names: Current week's contestant names
-        industry_map: Name -> Industry mapping
         
     Returns:
-        (aligned_alpha, industry_list)
+        aligned_alpha
     """
     aligned_alpha = []
-    industry_list = []
     
     for name in current_names:
-        industry = industry_map.get(name, 'Unknown')
-        industry_list.append(industry)
-        
         if name in prev_state.contestant_names:
             # Continuing contestant: inherit accumulated α
             idx = prev_state.contestant_names.index(name)
             aligned_alpha.append(prev_state.alpha[idx])
         else:
-            # New contestant (rare)
-            aligned_alpha.append(get_alpha_by_industry(industry))
+            # New contestant (rare): start with default prior
+            aligned_alpha.append(INITIAL_ALPHA)
     
     aligned_alpha = np.array(aligned_alpha)
     
     # Scale to maintain relative proportions after elimination
+    # Since alpha sum roughly correlates to information quantity (pseudo-counts),
+    # removing a loser reduces total information. We might want to slightly
+    # scale up survivors to reflect "reallocated attention", but keeping
+    # alpha stable (inertia) is the primary goal.
+    # Here we don't aggressively rescale because evidence accumulates over time.
+    # However, to avoid alpha vanishing or exploding irrelevant to N, we can check mean.
+    
+    # Optional: decay old information slightly? 
+    # Current logic: alpha grows with evidence. 
+    # Let's keep the simple logic from before: scale if drop is significant?
+    # Previous logic was: scale_factor = min(1.0 / remaining_ratio, 1.3)
+    # This keeps total alpha sum roughly constant.
     remaining_ratio = len(current_names) / prev_state.n_contestants
-    if remaining_ratio < 1:
-        scale_factor = min(1.0 / remaining_ratio, 1.3)
-        aligned_alpha = aligned_alpha * scale_factor
+    if remaining_ratio < 1 and remaining_ratio > 0:
+         scale_factor = min(1.0 / remaining_ratio, 1.3)
+         aligned_alpha = aligned_alpha * scale_factor
     
     aligned_alpha = np.maximum(aligned_alpha, MIN_ALPHA)
     
-    return aligned_alpha, industry_list
+    return aligned_alpha
 
 
 def update_prior_with_evidence(
@@ -328,28 +249,57 @@ def apply_rank_with_save_rule(
     )
 
 
-def simulate_week_with_industry_prior(
+def simulate_week_with_priors(
     week_data: pd.DataFrame,
     prev_state: Optional[WeekState],
-    rule_system: str,
-    industry_map: Dict[str, str]
+    rule_system: str
 ) -> Tuple[pd.DataFrame, Optional[WeekState]]:
     """
-    Simulate single week with industry-based Dirichlet prior.
+    Simulate single week with Bayesian Dirichlet prior (Skill + Momentum only).
     """
     contestant_names = week_data['celebrity_name'].tolist()
     n_contestants = len(contestant_names)
     
     # ─────────────────────────────────────────────────────────────────────────
-    # STEP 1: Construct Industry-Based Prior (方案 A 核心)
+    # STEP 1: Construct Prior
     # ─────────────────────────────────────────────────────────────────────────
     if prev_state is None:
-        # First week: use industry-based α
-        alpha, industries = initialize_industry_prior(contestant_names, industry_map)
+        # First week: use uniform prior
+        alpha = initialize_priors(contestant_names)
     else:
         # Subsequent weeks: inherit + align
-        alpha, industries = align_prior_to_current(prev_state, contestant_names, industry_map)
+        alpha = align_prior_to_current(prev_state, contestant_names)
     
+    # ─────────────────────────────────────────────────────────────────────────
+    # OPTIMIZATION: Incorporate Judge Skill (Performance) into Prior
+    # ─────────────────────────────────────────────────────────────────────────
+    # Adjust prior based on this week's judge performance (Z-score approach)
+    # Theory: Better dancers (higher judge scores) naturally attract more bandwagon fans
+    
+    # Get normalized scores (0.0 to 1.0) for current contestants
+    current_judge_scores = week_data['normalized_score'].values.astype(float)
+    
+    if len(current_judge_scores) > 1:
+        # Calculate Z-score
+        mu = np.mean(current_judge_scores)
+        sigma = np.std(current_judge_scores, ddof=1) # Sample std dev
+        
+        if sigma > 1e-6:
+            z_scores = (current_judge_scores - mu) / sigma
+        else:
+            z_scores = np.zeros_like(current_judge_scores)
+            
+        # Apply adjustment: alpha_new = alpha * (1 + lambda * z_score)
+        # We clamp the multiplier to [0.5, 2.0] to prevent extreme distortions
+        # If z=2 (very good), factor = 1 + 0.3*2 = 1.6
+        # If z=-2 (very bad), factor = 1 + 0.3*(-2) = 0.4
+        skill_multipliers = 1.0 + SKILL_IMPACT_FACTOR * z_scores
+        skill_multipliers = np.clip(skill_multipliers, 0.5, 2.0)
+        
+        alpha = alpha * skill_multipliers
+        # Ensure alpha doesn't drop below minimum
+        alpha = np.maximum(alpha, MIN_ALPHA)
+
     prior_strength = alpha.sum()
     
     # ─────────────────────────────────────────────────────────────────────────
@@ -383,9 +333,8 @@ def simulate_week_with_industry_prior(
     actual_eliminated_mask = week_data['is_eliminated'].values
     
     if actual_eliminated_mask.sum() == 0:
-        # Non-elimination week
-        new_state = WeekState(alpha=alpha, contestant_names=contestant_names, 
-                              contestant_industries=industries)
+        # Non-elimination week (e.g. withdrawal)
+        new_state = WeekState(alpha=alpha, contestant_names=contestant_names)
         results = week_data.copy()
         results['estimated_fan_share'] = alpha / alpha.sum()
         results['share_std'] = np.nan
@@ -393,7 +342,6 @@ def simulate_week_with_industry_prior(
         results['n_valid_sims'] = np.nan  # Mark as skipped for reporting consistency
         results['prior_strength'] = prior_strength
         results['posterior_strength'] = prior_strength
-        results['industry_class'] = [classify_industry(i) for i in industries]
         return results, new_state
     
     actual_eliminated_idx = np.where(actual_eliminated_mask)[0][0]
@@ -410,6 +358,7 @@ def simulate_week_with_industry_prior(
         confidence = n_valid / N_SIMULATIONS
         new_alpha = update_prior_with_evidence(alpha, estimated_shares)
     else:
+        # Fallback to prior if no valid simulations found (model failure logic)
         estimated_shares = alpha / alpha.sum()
         share_stds = np.full(n_contestants, np.nan)
         confidence = 0.0
@@ -427,49 +376,53 @@ def simulate_week_with_industry_prior(
     results['n_valid_sims'] = n_valid
     results['prior_strength'] = prior_strength
     results['posterior_strength'] = posterior_strength
-    results['industry_class'] = [classify_industry(i) for i in industries]
     
     new_state = WeekState(
         alpha=new_alpha,
-        contestant_names=contestant_names,
-        contestant_industries=industries
+        contestant_names=contestant_names
     )
     
     return results, new_state
 
 
-def run_simulation_with_industry_prior(df: pd.DataFrame) -> pd.DataFrame:
-    """Run full simulation with industry-based prior."""
+def run_simulation_bayesian(df: pd.DataFrame) -> pd.DataFrame:
+    """Run full simulation with Bayesian prior (Skill-only)."""
     np.random.seed(RANDOM_SEED)
     
-    # Load industry mapping
-    print("[INFO] Loading industry mapping...")
-    industry_map = load_industry_mapping()
-    
-    # Count classifications
-    fanbase_count = sum(1 for i in industry_map.values() if classify_industry(i) == 'fanbase')
-    regular_count = len(industry_map) - fanbase_count
-    print(f"   'Fanbase' industries: {fanbase_count} contestants (alpha={ALPHA_FANBASE})")
-    print(f"   'Regular' industries: {regular_count} contestants (alpha={ALPHA_REGULAR})")
+    # 移除行业信息加载
+    # print("[INFO] Loading industry mapping...")
+    # industry_map = load_industry_mapping()
     
     all_results = []
     seasons = df['season'].unique()
     
     for season in tqdm(seasons, desc="Processing seasons"):
         season_data = df[df['season'] == season].copy()
-        weeks = sorted(season_data['week'].unique())
-        rule_system = season_data['rule_system'].iloc[0]
+        
+        # Check rule system (handle case where rule_system col might be missing)
+        if 'rule_system' in season_data.columns:
+            rule_system = season_data['rule_system'].iloc[0]
+        else:
+            # Fallback based on season number if needed
+            if season <= 2: rule_system = 'Rank'
+            elif season <= 27: rule_system = 'Percent'
+            else: rule_system = 'Rank_With_Save'
+            
+        # Ensure week_num or week is used
+        week_col = 'week_num' if 'week_num' in season_data.columns else 'week'
+        weeks = sorted(season_data[week_col].unique())
         
         prev_state = None
         
         for week in weeks:
-            week_data = season_data[season_data['week'] == week].copy()
+            week_data = season_data[season_data[week_col] == week].copy()
             week_data = week_data.sort_values('celebrity_name').reset_index(drop=True)
             
-            results, prev_state = simulate_week_with_industry_prior(
-                week_data, prev_state, rule_system, industry_map
+            results, prev_state = simulate_week_with_priors(
+                week_data, prev_state, rule_system
             )
             
+            # Ensure season/week columns persist
             results['season'] = season
             results['week'] = week
             all_results.append(results)
@@ -504,9 +457,9 @@ def pressure_test_sean_spicer(df: pd.DataFrame, results: pd.DataFrame):
     
     for _, row in spicer_results.iterrows():
         conf_val = row['confidence'] if pd.notna(row['confidence']) else 0
-        print(f"   Week {row['week']:2d}: n_valid={row['n_valid_sims']:5d}, "
+        n_val = int(row['n_valid_sims']) if pd.notna(row['n_valid_sims']) else 0
+        print(f"   Week {row['week']:2d}: n_valid={n_val:5d}, "
               f"conf={conf_val:.4f}, "
-              f"class={row['industry_class']}, "
               f"fan_share={row['estimated_fan_share']:.4f}")
     
     # Summary
@@ -517,9 +470,9 @@ def pressure_test_sean_spicer(df: pd.DataFrame, results: pd.DataFrame):
     print(f"\n   Summary: {explainable_weeks}/{total_weeks} weeks explained (n_valid > 0)")
     
     if explainable_weeks > 0:
-        print(f"   [OK] Industry-based prior IMPROVED explainability for Spicer")
+        print(f"   [OK] Skill+Momentum model explains some Spicer survivals")
     else:
-        print(f"   [!!] Still cannot explain Spicer's survival")
+        print(f"   [!!] Still cannot explain Spicer's survival (Needs Industry logic?)")
 
 
 # =============================================================================
@@ -528,18 +481,14 @@ def pressure_test_sean_spicer(df: pd.DataFrame, results: pd.DataFrame):
 def main():
     print("="*70)
     print("   MCM 2026 Problem C: Bayesian-Dirichlet Monte Carlo")
-    print("   Industry-Based Two-Class Dirichlet Prior + Bayesian Updating")
+    print("   Pure Skill-Based Prior & Momentum (No Circular Industry Logic)")
     print("="*70)
     
     print(f"\n[CONFIG] Hyperparameters:")
-    print(f"   alpha_fanbase (ALPHA_FANBASE) = {ALPHA_FANBASE}")
-    print(f"   alpha_regular (ALPHA_REGULAR) = {ALPHA_REGULAR}")
+    print(f"   initial_alpha (uniform)       = {INITIAL_ALPHA}")
     print(f"   eta (LEARNING_RATE)           = {LEARNING_RATE}")
+    print(f"   skill_impact (lambda)         = {SKILL_IMPACT_FACTOR}")
     print(f"   N_SIMULATIONS                 = {N_SIMULATIONS}")
-    
-    print(f"\n[CONFIG] 'Built-in Fanbase' Industries:")
-    for ind in sorted(BUILT_IN_FANBASE_INDUSTRIES):
-        print(f"   - {ind}")
     
     # Load data
     print(f"\n[INFO] Loading data from: {INPUT_PATH}")
@@ -547,15 +496,16 @@ def main():
     print(f"   Rows: {len(df)}, Seasons: {df['season'].nunique()}")
     
     # Run simulation
-    print(f"\n[INFO] Running simulation with industry-based prior...")
-    results = run_simulation_with_industry_prior(df)
+    print(f"\n[INFO] Running simulation with Skill-Based prior...")
+    results = run_simulation_bayesian(df)
     
     # Results already contain all original columns
     final_results = results.copy()
     
     # Reorder columns: original columns first, then estimates
+    # (industry_class removed)
     estimate_cols = ['estimated_fan_share', 'share_std', 'confidence', 'n_valid_sims',
-                     'prior_strength', 'posterior_strength', 'industry_class']
+                     'prior_strength', 'posterior_strength']
     other_cols = [c for c in final_results.columns if c not in estimate_cols]
     final_results = final_results[other_cols + estimate_cols]
     
@@ -575,13 +525,6 @@ def main():
     print(f"\n   Total contestant-weeks: {len(final_results)}")
     print(f"   Valid simulations: {len(valid_results)} ({100*len(valid_results)/len(final_results):.1f}%)")
     
-    print(f"\n   Confidence by Industry Class:")
-    for cls in ['fanbase', 'regular']:
-        cls_data = valid_results[valid_results['industry_class'] == cls]
-        if len(cls_data) > 0:
-            print(f"      {cls:10s}: mean={cls_data['confidence'].mean():.4f}, "
-                  f"n={len(cls_data)}")
-    
     print(f"\n   Prior Strength Evolution (alpha_sum):")
     strength_by_week = final_results.groupby('week')['prior_strength'].mean()
     for week in [1, 3, 5, 7, 9]:
@@ -589,6 +532,8 @@ def main():
             print(f"      Week {week}: {strength_by_week[week]:.2f}")
     
     # Pressure test
+    # (Optional: Spicer might be harder to explain without industry prior, 
+    #  but if he had momentum or other factors, it might show)
     pressure_test_sean_spicer(df, final_results)
     
     print("\n" + "="*70)

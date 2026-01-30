@@ -3,17 +3,17 @@
 ## 1. Executive Summary
 - **Total Elimination Weeks Analyzed**: 264
 - **Basic Model Explanation Rate**: 99.6% (263/264)
-- **Bayesian Model Explanation Rate**: 99.2% (262/264)
-- **Net Improvement**: +-0.4% (0 weeks recovered)
+- **Bayesian Model Explanation Rate**: 89.0% (235/264)
+- **Net Improvement**: +-10.6% (0 weeks recovered)
 
 ## 2. Key Metrics by Era
 Evaluation excludes non-elimination weeks (e.g. withdrawals, finals).
 
 | Rule System | Basic Rate | Bayesian Rate | Improvement | Avg Certainty (Basic -> Bayes) | Avg Stability (Basic -> Bayes) |
 |---|---|---|---|---|---|
-| Percent | 100.0% | 100.0% | +0.0% | 0.213 -> 0.199 | 0.114 -> 0.068 |
-| Rank | 100.0% | 100.0% | +0.0% | 0.306 -> 0.296 | 0.134 -> 0.092 |
-| Rank_With_Save | 98.2% | 96.4% | +-1.8% | 0.296 -> 0.295 | 0.093 -> 0.059 |
+| Percent | 100.0% | 91.9% | +-8.1% | 0.213 -> 0.400 | 0.114 -> 0.048 |
+| Rank | 100.0% | 100.0% | +0.0% | 0.306 -> 0.310 | 0.134 -> 0.075 |
+| Rank_With_Save | 98.2% | 76.8% | +-21.4% | 0.296 -> 0.395 | 0.093 -> 0.044 |
 
 
 ## 3. Notable Recovered Cases
