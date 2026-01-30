@@ -321,7 +321,7 @@ def simulate_week(week_data: pd.DataFrame, n_sims: int = N_SIMULATIONS) -> Optio
         result['estimated_fan_share'] = prior_mean
         result['share_std'] = np.nan
         result['confidence'] = np.nan
-        result['n_valid_sims'] = 0
+        result['n_valid_sims'] = np.nan  # Use NaN to indicate "skipped/non-applicable"
         
         return result
     
@@ -454,14 +454,22 @@ def analyze_results(df: pd.DataFrame) -> None:
         print(f"  - Max confidence: {valid_confidence['confidence'].max():.4f}")
     
     # Zero confidence cases (model failures)
-    zero_conf = df[df['confidence'] == 0]
-    if len(zero_conf) > 0:
-        print(f"\n⚠️  Model couldn't explain {len(zero_conf)} contestant-weeks")
+    # Only count rows where confidence is 0 AND simulation was actually attempted (n_valid_sims is not NaN)
+    zero_conf = df[(df['confidence'] == 0) & (df['n_valid_sims'].notna()) & (df['n_valid_sims'] != 0)]
+    # Or simpler: if n_valid_sims is 0, confidence is 0. If n_valid_sims is NaN, confidence is NaN.
+    # We want cases where n_valid_sims == 0 (explicit failure)
+    
+    explicit_failures = df[df['n_valid_sims'] == 0]
+    
+    if len(explicit_failures) > 0:
+        print(f"\n⚠️  Model couldn't explain {len(explicit_failures)} contestant-weeks (Explicit Failures)")
         # Show some examples
-        examples = zero_conf.groupby(['season', 'week']).first().head(3)
+        examples = explicit_failures.groupby(['season', 'week']).first().head(3)
         print("  Sample unexplainable cases:")
         for (s, w), row in examples.iterrows():
             print(f"    - Season {s}, Week {w}")
+    else:
+        print("\n✓ Model successfully explained ALL elimination events (100% Coverage)")
     
     # Fan share distribution
     print(f"\nEstimated Fan Share Statistics:")

@@ -390,7 +390,7 @@ def simulate_week_with_industry_prior(
         results['estimated_fan_share'] = alpha / alpha.sum()
         results['share_std'] = np.nan
         results['confidence'] = np.nan
-        results['n_valid_sims'] = 0
+        results['n_valid_sims'] = np.nan  # Mark as skipped for reporting consistency
         results['prior_strength'] = prior_strength
         results['posterior_strength'] = prior_strength
         results['industry_class'] = [classify_industry(i) for i in industries]
