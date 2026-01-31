@@ -358,6 +358,67 @@ def plot_fan_trajectory(basic_raw: pd.DataFrame, bayes_raw: pd.DataFrame,
     plt.close()
 
 
+def plot_dual_axis_entropy_share(raw_df: pd.DataFrame, celebrity_name: str, season: int):
+    """
+    Case Study Plot: Dual-axis chart showing Fan Share (Left) and Entropy (Right).
+    Used to visualize the relationship between 'Vote Magnitude' and 'Uncertainty'.
+    Only for Bayesian Model.
+    """
+    # Filter data for Bayesian model
+    mask = (raw_df['season'] == season) & \
+           (raw_df['celebrity_name'].str.contains(celebrity_name, case=False, na=False)) & \
+           (raw_df['model'] == 'Bayesian')
+    
+    data = raw_df[mask].sort_values('week')
+    
+    if data.empty:
+        print(f"[WARN] No Bayesian data found for {celebrity_name} in Season {season}")
+        return
+        
+    if 'share_entropy' not in data.columns:
+        print("[WARN] 'share_entropy' column missing.")
+        return
+
+    # Create figure and axis
+    fig, ax1 = plt.subplots(figsize=(12, 6))
+    
+    # Trace 1: Fan Share (Left Axis)
+    color1 = '#2ecc71' # Green
+    ax1.set_xlabel('Week', fontsize=12)
+    ax1.set_ylabel('Estimated Fan Share (%)', color=color1, fontsize=12)
+    l1 = ax1.plot(data['week'], data['estimated_fan_share'], color=color1, 
+             marker='o', linewidth=2, label='Fan Share')
+    ax1.tick_params(axis='y', labelcolor=color1)
+    ax1.grid(True, alpha=0.3)
+    
+    # Add fill for std dev
+    ax1.fill_between(data['week'], 
+                     data['estimated_fan_share'] - data['share_std'],
+                     data['estimated_fan_share'] + data['share_std'],
+                     color=color1, alpha=0.1)
+
+    # Trace 2: Entropy (Right Axis)
+    ax2 = ax1.twinx()
+    color2 = '#e74c3c' # Red
+    ax2.set_ylabel('Shannon Entropy (nats)\nHigh = Uncertain/Chaotic', color=color2, fontsize=12)
+    l2 = ax2.plot(data['week'], data['share_entropy'], color=color2, 
+             marker='s', linestyle='--', linewidth=2, label='Uncertainty (Entropy)')
+    ax2.tick_params(axis='y', labelcolor=color2)
+    ax2.grid(False) # Turn off grid for second axis to avoid clutter
+    
+    # Combined legend
+    lines = l1 + l2
+    labels = [l.get_label() for l in lines]
+    ax1.legend(lines, labels, loc='upper left')
+
+    plt.title(f'Case Study: {celebrity_name} (Season {season})\n'
+              f'Relationship between Fan Support and Model Uncertainty', fontsize=14)
+    
+    safe_name = celebrity_name.replace(' ', '_')
+    plt.savefig(PLOTS_DIR / f"case_study_entropy_{safe_name}_S{season}.png", dpi=300)
+    plt.close()
+
+
 # =============================================================================
 # Reporting
 # =============================================================================
@@ -493,7 +554,11 @@ def main():
     plot_entropy_heatmap(bayes_df, 27) # Bobby Bones Era
     plot_entropy_heatmap(bayes_df, 28) # Sean Spicer Era
     plot_entropy_heatmap(bayes_df, 32) # Xochitl Gomez / Jason Mraz era? (Recent high skill)
-    
+
+    # Duel Axis Case Studies
+    plot_dual_axis_entropy_share(bayes_df, "Bobby Bones", 27)
+    plot_dual_axis_entropy_share(bayes_df, "Sean Spicer", 28)
+
     # 5. Generate Report
     print("[INFO] Generating report...")
     generate_report(perf, recovered_cases)
