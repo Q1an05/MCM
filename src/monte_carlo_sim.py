@@ -31,7 +31,7 @@ warnings.filterwarnings('ignore')
 # Configuration
 # =============================================================================
 INPUT_PATH = Path(__file__).parent.parent / "data_processed" / "dwts_simulation_input.csv"
-OUTPUT_PATH = Path(__file__).parent.parent / "results" / "fan_vote_estimates.csv"
+OUTPUT_PATH = Path(__file__).parent.parent / "results" / "full_simulation_basic.csv"
 
 # Simulation parameters
 N_SIMULATIONS = 10000
@@ -317,11 +317,11 @@ def simulate_week(week_data: pd.DataFrame, n_sims: int = N_SIMULATIONS) -> Optio
         n_contestants = len(week_data)
         prior_mean = 1.0 / n_contestants  # Dirichlet mean with equal alpha
         
-        result = week_data[['season', 'week', 'celebrity_name']].copy()
+        result = week_data.copy()
         result['estimated_fan_share'] = prior_mean
         result['share_std'] = np.nan
         result['confidence'] = np.nan
-        result['n_valid_sims'] = 0
+        result['n_valid_sims'] = np.nan  # Use NaN to indicate "skipped/non-applicable"
         
         return result
     
@@ -362,7 +362,7 @@ def simulate_week(week_data: pd.DataFrame, n_sims: int = N_SIMULATIONS) -> Optio
         # Return prior with low confidence
         prior_mean = 1.0 / n_contestants
         
-        result = week_data[['season', 'week', 'celebrity_name']].copy()
+        result = week_data.copy()
         result['estimated_fan_share'] = prior_mean
         result['share_std'] = np.nan
         result['confidence'] = 0.0
@@ -377,8 +377,8 @@ def simulate_week(week_data: pd.DataFrame, n_sims: int = N_SIMULATIONS) -> Optio
     share_stds = valid_fan_shares.std(axis=0)
     confidence = n_valid / n_sims
     
-    # Build result DataFrame
-    result = week_data[['season', 'week', 'celebrity_name']].copy()
+    # Build result DataFrame - keep all original columns
+    result = week_data.copy()
     result['estimated_fan_share'] = estimated_shares
     result['share_std'] = share_stds
     result['confidence'] = confidence
@@ -454,14 +454,22 @@ def analyze_results(df: pd.DataFrame) -> None:
         print(f"  - Max confidence: {valid_confidence['confidence'].max():.4f}")
     
     # Zero confidence cases (model failures)
-    zero_conf = df[df['confidence'] == 0]
-    if len(zero_conf) > 0:
-        print(f"\n⚠️  Model couldn't explain {len(zero_conf)} contestant-weeks")
+    # Only count rows where confidence is 0 AND simulation was actually attempted (n_valid_sims is not NaN)
+    zero_conf = df[(df['confidence'] == 0) & (df['n_valid_sims'].notna()) & (df['n_valid_sims'] != 0)]
+    # Or simpler: if n_valid_sims is 0, confidence is 0. If n_valid_sims is NaN, confidence is NaN.
+    # We want cases where n_valid_sims == 0 (explicit failure)
+    
+    explicit_failures = df[df['n_valid_sims'] == 0]
+    
+    if len(explicit_failures) > 0:
+        print(f"\n⚠️  Model couldn't explain {len(explicit_failures)} contestant-weeks (Explicit Failures)")
         # Show some examples
-        examples = zero_conf.groupby(['season', 'week']).first().head(3)
+        examples = explicit_failures.groupby(['season', 'week']).first().head(3)
         print("  Sample unexplainable cases:")
         for (s, w), row in examples.iterrows():
             print(f"    - Season {s}, Week {w}")
+    else:
+        print("\n✓ Model successfully explained ALL elimination events (100% Coverage)")
     
     # Fan share distribution
     print(f"\nEstimated Fan Share Statistics:")
@@ -494,20 +502,19 @@ def get_rule_for_season(season: int) -> str:
 
 def save_results(df: pd.DataFrame, output_path: Path) -> None:
     """
-    Save results to CSV.
+    Save full simulation results to CSV.
     
     Args:
-        df: Results DataFrame
+        df: Results DataFrame with all original columns + estimates
         output_path: Path for output file
     """
     # Ensure output directory exists
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
-    # Select and order columns for output
-    output_cols = [
-        'season', 'week', 'celebrity_name',
-        'estimated_fan_share', 'share_std', 'confidence', 'n_valid_sims'
-    ]
+    # Keep all columns, reorder to put estimates at the end
+    estimate_cols = ['estimated_fan_share', 'share_std', 'confidence', 'n_valid_sims']
+    other_cols = [c for c in df.columns if c not in estimate_cols]
+    output_cols = other_cols + estimate_cols
     
     output_df = df[output_cols].copy()
     
@@ -517,8 +524,9 @@ def save_results(df: pd.DataFrame, output_path: Path) -> None:
     output_df['confidence'] = output_df['confidence'].round(6)
     
     output_df.to_csv(output_path, index=False)
-    print(f"\n✓ Results saved to: {output_path}")
+    print(f"\n✓ Full simulation results saved to: {output_path}")
     print(f"  Total rows: {len(output_df)}")
+    print(f"  Columns: {len(output_cols)}")
 
 
 def display_sample_results(df: pd.DataFrame) -> None:
