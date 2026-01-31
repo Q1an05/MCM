@@ -54,6 +54,7 @@ from tqdm import tqdm
 from typing import Tuple, Optional, Dict, List
 from dataclasses import dataclass
 import warnings
+from scipy.stats import entropy
 
 warnings.filterwarnings('ignore')
 
@@ -70,7 +71,8 @@ N_SIMULATIONS = 10000
 RANDOM_SEED = 42
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
-# │           方案 A: 纯实力驱动的动态贝叶斯模型 (Pure Skill & Momentum)             │
+# │           方案 A: 混合贝叶斯模型 (Mixture Bayesian Model)                     │
+# │           Pure Skill + Momentum + Chaos (Pareto/Uniform Tail)               │
 # └─────────────────────────────────────────────────────────────────────────────┘
 
 # 移除行业先验，避免循环论证。
@@ -81,7 +83,11 @@ INITIAL_ALPHA = 1.0    # 初始无信息先验 (Uniform / Slight Sparsity)
 LEARNING_RATE = 0.4
 EVIDENCE_BOOST = 5.0
 MIN_ALPHA = 0.1
-SKILL_IMPACT_FACTOR = 0.3  # 增加实力权重，补偿行业先验的缺失 (原为 0.2)
+SKILL_IMPACT_FACTOR = 0.3  # 增加实力权重
+
+# 混合模型参数 (Mixture Model)
+# 允许一定比例的样本来自"混乱分布" (Uniform)，涵盖非理性投票/长尾事件。
+CHAOS_FACTOR = 0.05  # 5% 的可能性是完全随机投票 (The "Chaos" Component)
 
 
 # =============================================================================
@@ -190,8 +196,24 @@ def update_prior_with_evidence(
 # Simulation Functions
 # =============================================================================
 def generate_fan_shares(alpha: np.ndarray, n_sims: int = N_SIMULATIONS) -> np.ndarray:
-    """Generate fan share samples from Dirichlet(α)."""
-    return np.random.dirichlet(alpha, size=n_sims)
+    """
+    Generate fan share samples using a Mixture Model.
+    
+    Model: (1 - lambda) * Dirichlet(alpha_skill) + lambda * Dirichlet(alpha_uniform)
+    """
+    n_chaos = int(n_sims * CHAOS_FACTOR)
+    n_skill = n_sims - n_chaos
+    
+    # 1. Rational/Skill Component (History + Judge Scores)
+    samples_skill = np.random.dirichlet(alpha, size=n_skill)
+    
+    # 2. Chaos/Irrational Component (Uniform/Random)
+    # Represents viral moments, protest votes, or complete noise.
+    alpha_chaos = np.ones_like(alpha) # Uniform prior
+    samples_chaos = np.random.dirichlet(alpha_chaos, size=n_chaos)
+    
+    # Combine
+    return np.concatenate([samples_skill, samples_chaos], axis=0)
 
 
 def shares_to_ranks(shares: np.ndarray) -> np.ndarray:
@@ -355,12 +377,26 @@ def simulate_week_with_priors(
         valid_samples = fan_share_samples[valid_mask]
         estimated_shares = valid_samples.mean(axis=0)
         share_stds = valid_samples.std(axis=0)
+        
+        # Calculate Shannon Entropy for each contestant (Uncertainty Metric)
+        # Higher entropy = Model is less sure about the specific vote share
+        share_entropies = []
+        for i in range(n_contestants):
+             # Discretize into bins to calculate entropy of the distribution
+             counts, _ = np.histogram(valid_samples[:, i], bins=50, range=(0, 1))
+             # Normalizing to probabilities is handled by scipy.stats.entropy if standard input
+             probs = counts / counts.sum()
+             ent = entropy(probs) # Base e (nats)
+             share_entropies.append(ent)
+        share_entropies = np.array(share_entropies)
+        
         confidence = n_valid / N_SIMULATIONS
         new_alpha = update_prior_with_evidence(alpha, estimated_shares)
     else:
-        # Fallback to prior if no valid simulations found (model failure logic)
+        # Fallback to prior
         estimated_shares = alpha / alpha.sum()
         share_stds = np.full(n_contestants, np.nan)
+        share_entropies = np.full(n_contestants, np.nan)
         confidence = 0.0
         new_alpha = alpha
     
@@ -372,6 +408,7 @@ def simulate_week_with_priors(
     results = week_data.copy()
     results['estimated_fan_share'] = estimated_shares
     results['share_std'] = share_stds
+    results['share_entropy'] = share_entropies
     results['confidence'] = confidence
     results['n_valid_sims'] = n_valid
     results['prior_strength'] = prior_strength
@@ -481,13 +518,14 @@ def pressure_test_sean_spicer(df: pd.DataFrame, results: pd.DataFrame):
 def main():
     print("="*70)
     print("   MCM 2026 Problem C: Bayesian-Dirichlet Monte Carlo")
-    print("   Pure Skill-Based Prior & Momentum (No Circular Industry Logic)")
+    print("   Mixture Bayesian Model: Skill + Momentum + Chaos")
     print("="*70)
     
     print(f"\n[CONFIG] Hyperparameters:")
     print(f"   initial_alpha (uniform)       = {INITIAL_ALPHA}")
     print(f"   eta (LEARNING_RATE)           = {LEARNING_RATE}")
     print(f"   skill_impact (lambda)         = {SKILL_IMPACT_FACTOR}")
+    print(f"   chaos_factor (mixture)        = {CHAOS_FACTOR}")
     print(f"   N_SIMULATIONS                 = {N_SIMULATIONS}")
     
     # Load data
@@ -503,8 +541,8 @@ def main():
     final_results = results.copy()
     
     # Reorder columns: original columns first, then estimates
-    # (industry_class removed)
-    estimate_cols = ['estimated_fan_share', 'share_std', 'confidence', 'n_valid_sims',
+    # (industry_class removed, added share_entropy)
+    estimate_cols = ['estimated_fan_share', 'share_std', 'share_entropy', 'confidence', 'n_valid_sims',
                      'prior_strength', 'posterior_strength']
     other_cols = [c for c in final_results.columns if c not in estimate_cols]
     final_results = final_results[other_cols + estimate_cols]

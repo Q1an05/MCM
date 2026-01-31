@@ -110,6 +110,12 @@ def compute_week_metrics(df: pd.DataFrame) -> pd.DataFrame:
         # Only relevant if Explained
         avg_share_std = group['share_std'].mean() if classification == 'Explained' else np.nan
         
+        # Entropy (Information/Uncertainty): Mean Shannon entropy
+        # Only available for Bayesian Mixture model currently
+        avg_share_entropy = np.nan
+        if 'share_entropy' in group.columns and classification == 'Explained':
+             avg_share_entropy = group['share_entropy'].mean()
+
         records.append({
             'season': season,
             'week': week,
@@ -118,6 +124,7 @@ def compute_week_metrics(df: pd.DataFrame) -> pd.DataFrame:
             'n_valid_sims': valid_sims,
             'confidence': confidence,
             'avg_share_std': avg_share_std,
+            'avg_share_entropy': avg_share_entropy,
             'model': group['model'].iloc[0]
         })
         
@@ -127,6 +134,44 @@ def compute_week_metrics(df: pd.DataFrame) -> pd.DataFrame:
 # =============================================================================
 # Visualizations
 # =============================================================================
+def plot_entropy_heatmap(raw_df: pd.DataFrame, season: int, model_name: str = 'Bayesian'):
+    """
+    Generate a heatmap of Share Entropy for a specific season.
+    X-axis: Week
+    Y-axis: Contestant
+    Color: Entropy (Darker = Higher Uncertainty/Entropy)
+    """
+    season_data = raw_df[(raw_df['season'] == season) & (raw_df['model'] == model_name)].copy()
+    
+    if season_data.empty or 'share_entropy' not in season_data.columns:
+        print(f"[INFO] Skipping entropy heatmap for S{season} (No entropy data found)")
+        return
+
+    # Pivot: Index=Contestant, Columns=Week, Values=Entropy
+    pivot_table = season_data.pivot(index='celebrity_name', columns='week', values='share_entropy')
+    
+    # Sort Y-axis by average entropy or elimination order? 
+    # Elimination order is better to see the "survival" path.
+    # We can infer elimination order by who stops appearing.
+    # Alternatively, sort by total entropy.
+    pivot_table['mean_ent'] = pivot_table.mean(axis=1)
+    pivot_table = pivot_table.sort_values('mean_ent', ascending=False) # Most uncertain on top
+    pivot_table = pivot_table.drop(columns='mean_ent')
+    
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(pivot_table, cmap="YlGnBu", annot=True, fmt=".2f", cbar_kws={'label': 'Shannon Entropy (nats)'})
+    
+    plt.title(f'Uncertainty Heatmap: Season {season} ({model_name} Mixture Model)\n'
+              f'High Entropy (Dark) = High Uncertainty/Latent Potential\n'
+              f'Low Entropy (Light) = Strict Constraints', fontsize=14)
+    plt.xlabel('Week Num', fontsize=12)
+    plt.ylabel('Contestant', fontsize=12)
+    
+    plt.tight_layout()
+    plt.savefig(PLOTS_DIR / f"entropy_heatmap_S{season}.png", dpi=300)
+    plt.close()
+
+
 def plot_explanation_rate(perf_df: pd.DataFrame):
     """
     Plot Explanation Rate comparison by Rule System, including Overall.
@@ -236,6 +281,33 @@ def plot_stability_distribution(perf_df: pd.DataFrame):
     
     plt.tight_layout()
     plt.savefig(PLOTS_DIR / "stability_distribution.png", dpi=300)
+    plt.close()
+
+
+def plot_entropy_distribution(perf_df: pd.DataFrame):
+    """
+    Plot distribution of Shannon Entropy.
+    """
+    # Filter Only Explained weeks and Bayesian model
+    df = perf_df[(perf_df['classification'] == 'Explained') & (perf_df['model'] == 'Bayesian')].copy()
+    
+    if df['avg_share_entropy'].isna().all():
+        return
+
+    plt.figure(figsize=(10, 6))
+    sns.violinplot(
+        data=df,
+        x='rule_system',
+        y='avg_share_entropy',
+        color='#2ecc71'
+    )
+    
+    plt.title('Uncertainty Profile using Shannon Entropy (Bayesian Mixture Model)', fontsize=14)
+    plt.ylabel('Avg Shannon Entropy (nats)', fontsize=12)
+    plt.xlabel('Rule System', fontsize=12)
+    
+    plt.tight_layout()
+    plt.savefig(PLOTS_DIR / "entropy_distribution.png", dpi=300)
     plt.close()
 
 
@@ -411,10 +483,16 @@ def main():
     plot_explanation_rate(perf)
     plot_certainty_distribution(perf)
     plot_stability_distribution(perf)
+    plot_entropy_distribution(perf)
     
     # Trajectories
     plot_fan_trajectory(basic_df, bayes_df, "Bobby Bones", 27)
     plot_fan_trajectory(basic_df, bayes_df, "Sean Spicer", 28)
+    
+    # Entropy Heatmaps (Targeted)
+    plot_entropy_heatmap(bayes_df, 27) # Bobby Bones Era
+    plot_entropy_heatmap(bayes_df, 28) # Sean Spicer Era
+    plot_entropy_heatmap(bayes_df, 32) # Xochitl Gomez / Jason Mraz era? (Recent high skill)
     
     # 5. Generate Report
     print("[INFO] Generating report...")
