@@ -468,6 +468,59 @@ def compute_merit_safety_rate(results_df: pd.DataFrame, rank_df: pd.DataFrame) -
     return safety_rates
 
 
+def compute_talent_elimination_rate(results_df: pd.DataFrame, rank_df: pd.DataFrame) -> Dict[str, float]:
+    """
+    计算 Top 3 Judge Scorer (高技术选手) 的被淘汰率。
+    
+    这是 Mediocrity Survival Rate 的互补指标：
+    - Talent Elimination Rate 越低，说明系统越保护高技术选手
+    - 如果 System C 的 TER 最低，证明"评委拯救"有效保护了技术派
+    
+    Returns:
+        Dict with elimination rates for each system
+    """
+    print("[INFO] Computing Talent Elimination Rate (Top 3 Judge Scorers)...")
+    
+    systems = ['rank', 'percent', 'save']
+    elim_rates = {}
+    
+    for sys in systems:
+        loser_col = f'{sys}_loser'
+        valid_weeks = results_df[results_df[loser_col].notna()].copy()
+        
+        top3_eliminated = 0
+        top3_total = 0
+        
+        for _, row in valid_weeks.iterrows():
+            season = row['season']
+            week = row['week']
+            loser = row[loser_col]
+            
+            # Get this week's data
+            week_data = rank_df[
+                (rank_df['season'] == season) & 
+                (rank_df['week'] == week)
+            ].copy()
+            
+            if len(week_data) < 3:
+                continue
+            
+            # Identify top 3 judge scorers (highest normalized_score)
+            week_data = week_data.sort_values('normalized_score', ascending=False)
+            top3_names = week_data.head(3)['celebrity_name'].tolist()
+            
+            top3_total += len(top3_names)
+            
+            # Check if loser is among top 3
+            if loser in top3_names:
+                top3_eliminated += 1
+        
+        elim_rate = top3_eliminated / top3_total if top3_total > 0 else 0.0
+        elim_rates[sys.capitalize()] = elim_rate
+    
+    return elim_rates
+
+
 def validate_system_c(results_df: pd.DataFrame) -> float:
     """
     Validate System C against actual history for Seasons 28-34.
@@ -550,30 +603,271 @@ def plot_fan_bias_comparison(fpi: Dict[str, float]):
     print("[INFO] Saved fan bias comparison plot")
 
 
-def plot_merit_safety(safety_rates: Dict[str, float]):
+def plot_mediocrity_survival(survival_rates: Dict[str, float], talent_elim_rates: Dict[str, float]):
     """
-    Create bar chart comparing Merit Safety Rates.
+    Create dual bar chart comparing:
+    1. Mediocrity Survival Rate (平庸存活率) - 越低越公平
+    2. Talent Elimination Rate (英才被杀率) - 越低越保护技术
     """
     systems = ['Rank', 'Percent', 'Save']
-    values = [safety_rates.get(sys, 0.0) for sys in systems]
+    surv_values = [survival_rates.get(sys, 0.0) for sys in systems]
+    elim_values = [talent_elim_rates.get(sys, 0.0) for sys in systems]
     
-    plt.figure(figsize=(10, 6))
-    ax = sns.barplot(x=systems, y=values, palette=['#3498db', '#2ecc71', '#e74c3c'])
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
-    plt.title('Merit Safety Rate: Protection for Bottom 3 Judge Scorers', fontsize=14)
-    plt.ylabel('Survival Rate (% Bottom 3 Contestants Not Eliminated)', fontsize=12)
-    plt.xlabel('Rule System', fontsize=12)
-    plt.ylim(0, 1)
+    # Plot 1: Mediocrity Survival Rate (lower = more meritocratic)
+    ax1 = axes[0]
+    bars1 = ax1.bar(systems, surv_values, color=['#3498db', '#2ecc71', '#e74c3c'])
+    ax1.set_title('Mediocrity Survival Rate\n(Bottom 3 Judge Scorers Survival Rate)\n↓ Lower = More Meritocratic', fontsize=12)
+    ax1.set_ylabel('Survival Rate (%)', fontsize=11)
+    ax1.set_xlabel('Rule System', fontsize=11)
+    ax1.set_ylim(0, 1)
+    for i, v in enumerate(surv_values):
+        ax1.text(i, v + 0.02, f'{v:.2%}', ha='center', fontsize=10)
+    # Highlight the best (lowest)
+    min_idx = np.argmin(surv_values)
+    bars1[min_idx].set_edgecolor('gold')
+    bars1[min_idx].set_linewidth(3)
     
-    # Add value labels
-    for i, v in enumerate(values):
-        ax.text(i, v + 0.02, f'{v:.2%}', ha='center', fontsize=11)
+    # Plot 2: Talent Elimination Rate (lower = better talent protection)
+    ax2 = axes[1]
+    bars2 = ax2.bar(systems, elim_values, color=['#3498db', '#2ecc71', '#e74c3c'])
+    ax2.set_title('Talent Elimination Rate\n(Top 3 Judge Scorers Elimination Rate)\n↓ Lower = Better Talent Protection', fontsize=12)
+    ax2.set_ylabel('Elimination Rate (%)', fontsize=11)
+    ax2.set_xlabel('Rule System', fontsize=11)
+    ax2.set_ylim(0, max(elim_values) * 1.3 if max(elim_values) > 0 else 0.1)
+    for i, v in enumerate(elim_values):
+        ax2.text(i, v + 0.002, f'{v:.2%}', ha='center', fontsize=10)
+    # Highlight the best (lowest)
+    min_idx = np.argmin(elim_values)
+    bars2[min_idx].set_edgecolor('gold')
+    bars2[min_idx].set_linewidth(3)
     
+    plt.suptitle('Merit-Based Evaluation: Which System Best Balances Talent vs Popularity?', fontsize=14, y=1.02)
     plt.tight_layout()
-    plt.savefig(PLOTS_DIR / "q2_merit_safety.png", dpi=300)
+    plt.savefig(PLOTS_DIR / "q2_merit_metrics.png", dpi=300, bbox_inches='tight')
     plt.close()
     
-    print("[INFO] Saved merit safety plot")
+    print("[INFO] Saved merit metrics plot (mediocrity survival + talent elimination)")
+
+
+def analyze_celebrity_case(rank_df: pd.DataFrame, results_df: pd.DataFrame,
+                           name: str, season: int) -> Dict:
+    """
+    通用名人案例分析框架：分析指定选手在三种规则下的命运。
+    
+    Args:
+        rank_df: 选手每周排名数据
+        results_df: 每周淘汰结果数据
+        name: 选手名字（支持模糊匹配）
+        season: 赛季号
+    
+    Returns:
+        Dict containing:
+        - weeks_data: 每周在三系统下的排名
+        - elimination_weeks: {system: elimination_week} 各系统淘汰周次
+        - bottom3_count: 评委分进入Bottom 3的次数
+        - actual_finish: 实际最终排名
+    """
+    # Filter data for specified season and name
+    celeb_data = rank_df[
+        (rank_df['season'] == season) & 
+        (rank_df['celebrity_name'].str.contains(name, case=False, na=False))
+    ].copy()
+    
+    if celeb_data.empty:
+        print(f"[WARNING] {name} not found in Season {season}")
+        return None
+    
+    # Get weekly results for this season
+    season_results = results_df[results_df['season'] == season].copy()
+    
+    # Find elimination week under each system
+    elimination_weeks = {'rank': None, 'percent': None, 'save': None}
+    for _, row in season_results.iterrows():
+        for sys in ['rank', 'percent', 'save']:
+            loser_col = f'{sys}_loser'
+            if row[loser_col] and name.lower() in row[loser_col].lower():
+                if elimination_weeks[sys] is None:
+                    elimination_weeks[sys] = row['week']
+    
+    # Count bottom 3 judge appearances
+    bottom3_count = celeb_data['is_bottom3_judge'].sum()
+    total_weeks = len(celeb_data)
+    
+    # Get actual final position (approximation based on last week they appeared)
+    actual_last_week = celeb_data['week'].max()
+    
+    # Extract weekly ranks
+    weeks = sorted(celeb_data['week'].unique())
+    weeks_data = []
+    for week in weeks:
+        week_data = celeb_data[celeb_data['week'] == week].iloc[0]
+        weeks_data.append({
+            'week': week,
+            'rank_rank': week_data['rank_rank'],
+            'percent_rank': week_data['percent_rank'],
+            'save_rank': week_data['save_rank'],
+            'is_bottom3_judge': week_data['is_bottom3_judge'],
+            'normalized_score': week_data['normalized_score']
+        })
+    
+    return {
+        'name': name,
+        'season': season,
+        'weeks_data': weeks_data,
+        'elimination_weeks': elimination_weeks,
+        'bottom3_count': bottom3_count,
+        'total_weeks': total_weeks,
+        'actual_last_week': actual_last_week
+    }
+
+
+def plot_celebrity_case(case_data: Dict, save_path: Path = None):
+    """
+    为单个名人生成三系统命运对比图。
+    """
+    if case_data is None:
+        return
+    
+    weeks_data = case_data['weeks_data']
+    weeks = [d['week'] for d in weeks_data]
+    rank_vals = [d['rank_rank'] for d in weeks_data]
+    percent_vals = [d['percent_rank'] for d in weeks_data]
+    save_vals = [d['save_rank'] for d in weeks_data]
+    bottom3_weeks = [d['week'] for d in weeks_data if d['is_bottom3_judge']]
+    
+    # Calculate reasonable y-axis range
+    all_ranks = rank_vals + percent_vals + save_vals
+    min_rank = min(all_ranks)
+    max_rank = max(all_ranks)
+    rank_range = max_rank - min_rank
+    y_padding = max(1, rank_range * 0.15)  # At least 1 rank padding
+    
+    fig, ax = plt.subplots(figsize=(14, 7))
+    
+    ax.step(weeks, rank_vals, where='mid', label='System A (Rank)', linewidth=2.5, marker='o', markersize=6)
+    ax.step(weeks, percent_vals, where='mid', label='System B (Percent)', linewidth=2.5, marker='s', markersize=6)
+    ax.step(weeks, save_vals, where='mid', label='System C (Rank+Save)', linewidth=2.5, marker='^', markersize=6)
+    
+    # Mark bottom 3 judge weeks
+    for w in bottom3_weeks:
+        ax.axvline(x=w, color='orange', linestyle=':', alpha=0.5, linewidth=1.5)
+    
+    # Mark elimination weeks
+    elim = case_data['elimination_weeks']
+    colors = {'rank': '#3498db', 'percent': '#2ecc71', 'save': '#e74c3c'}
+    y_text_pos = min_rank - y_padding * 0.5
+    for sys, week in elim.items():
+        if week:
+            ax.axvline(x=week, color=colors[sys], linestyle='--', linewidth=2, alpha=0.7)
+            ax.text(week + 0.1, y_text_pos, f'{sys.upper()} elim', rotation=90, 
+                    fontsize=9, color=colors[sys], va='bottom', ha='left')
+    
+    ax.set_xlabel('Week', fontsize=13)
+    ax.set_ylabel('Virtual Rank (1 = Best)', fontsize=13)
+    ax.set_title(f"{case_data['name']} (Season {case_data['season']}) - Virtual Rank Under Different Rules\n"
+                 f"Bottom 3 Judge: {case_data['bottom3_count']}/{case_data['total_weeks']} weeks", fontsize=15, pad=15)
+    ax.legend(fontsize=11, loc='best')
+    ax.grid(True, alpha=0.3, linewidth=0.8)
+    
+    # Set y-axis limits with padding to avoid compression
+    ax.set_ylim(max_rank + y_padding, min_rank - y_padding)
+    
+    plt.tight_layout(pad=1.5)
+    if save_path:
+        plt.savefig(save_path, dpi=300)
+        print(f"[INFO] Saved celebrity case plot: {save_path}")
+    plt.close()
+
+
+def analyze_all_celebrities(rank_df: pd.DataFrame, results_df: pd.DataFrame) -> Dict:
+    """
+    分析题目中提到的4位争议名人，生成可视化和汇总报告。
+    
+    Returns:
+        Dict with analysis results for all celebrities
+    """
+    print("\n" + "="*70)
+    print("CELEBRITY CASE STUDY ANALYSIS")
+    print("="*70)
+    
+    celebrities = [
+        ('Jerry Rice', 2),      # S2: 评委分极低却获亚军
+        ('Billy Ray Cyrus', 4), # S4: 评委分垫底却获第5名  
+        ('Bristol Palin', 11),  # S11: 12次评委分最低却获第3名
+        ('Bobby Bones', 27)     # S27: 评委分低却夺冠
+    ]
+    
+    all_results = {}
+    
+    for name, season in celebrities:
+        print(f"\n[CASE STUDY] Analyzing {name} (Season {season})...")
+        case_data = analyze_celebrity_case(rank_df, results_df, name, season)
+        
+        if case_data:
+            all_results[name] = case_data
+            
+            # Print summary
+            elim = case_data['elimination_weeks']
+            print(f"  - Bottom 3 Judge appearances: {case_data['bottom3_count']}/{case_data['total_weeks']} weeks")
+            print(f"  - Elimination under Rank System: Week {elim['rank'] or 'Never (survived)'}")
+            print(f"  - Elimination under Percent System: Week {elim['percent'] or 'Never (survived)'}")
+            print(f"  - Elimination under Rank+Save: Week {elim['save'] or 'Never (survived)'}")
+            
+            # Generate individual plot
+            safe_name = name.replace(' ', '_').lower()
+            plot_path = PLOTS_DIR / f"q2_celebrity_{safe_name}_s{season}.png"
+            plot_celebrity_case(case_data, plot_path)
+        else:
+            print(f"  [WARNING] Could not analyze {name}")
+    
+    # Generate combined comparison plot
+    if all_results:
+        plot_combined_celebrities(all_results)
+    
+    return all_results
+
+
+def plot_combined_celebrities(all_results: Dict):
+    """
+    生成4位名人的综合对比图（2x2子图）。
+    """
+    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    axes = axes.flatten()
+    
+    for idx, (name, case_data) in enumerate(all_results.items()):
+        ax = axes[idx]
+        weeks_data = case_data['weeks_data']
+        weeks = [d['week'] for d in weeks_data]
+        rank_vals = [d['rank_rank'] for d in weeks_data]
+        percent_vals = [d['percent_rank'] for d in weeks_data]
+        save_vals = [d['save_rank'] for d in weeks_data]
+        
+        ax.step(weeks, rank_vals, where='mid', label='Rank', linewidth=2, marker='o', markersize=4)
+        ax.step(weeks, percent_vals, where='mid', label='Percent', linewidth=2, marker='s', markersize=4)
+        ax.step(weeks, save_vals, where='mid', label='Rank+Save', linewidth=2, marker='^', markersize=4)
+        
+        # Mark elimination weeks
+        elim = case_data['elimination_weeks']
+        colors = {'rank': '#3498db', 'percent': '#2ecc71', 'save': '#e74c3c'}
+        for sys, week in elim.items():
+            if week:
+                ax.axvline(x=week, color=colors[sys], linestyle='--', alpha=0.7)
+        
+        ax.set_xlabel('Week', fontsize=10)
+        ax.set_ylabel('Virtual Rank', fontsize=10)
+        ax.set_title(f"{name} (S{case_data['season']})\nBottom 3: {case_data['bottom3_count']}/{case_data['total_weeks']} weeks", 
+                     fontsize=11)
+        ax.legend(fontsize=8, loc='upper right')
+        ax.grid(True, alpha=0.3)
+        ax.invert_yaxis()
+    
+    plt.suptitle('Controversial Celebrity Case Studies: What If Rules Were Different?', fontsize=14, y=1.02)
+    plt.tight_layout()
+    plt.savefig(PLOTS_DIR / "q2_celebrity_combined.png", dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"[INFO] Saved combined celebrity plot")
 
 
 def plot_bobby_bones_survival(rank_df: pd.DataFrame, results_df: pd.DataFrame):
@@ -684,7 +978,8 @@ def main():
     print(f"\n[METRICS] Reversal Rate (Rank vs Percent): {reversal_rate:.2%}")
     
     fpi = compute_fan_power_index(rank_df)
-    safety_rates = compute_merit_safety_rate(results_df, rank_df)
+    mediocrity_rates = compute_merit_safety_rate(results_df, rank_df)  # Renamed for clarity
+    talent_elim_rates = compute_talent_elimination_rate(results_df, rank_df)  # NEW
     validation_accuracy = validate_system_c(results_df)
     
     # Print metrics
@@ -693,8 +988,12 @@ def main():
         if '_' not in key:  # Overall metrics
             print(f"  - {key}: {value:.3f}")
     
-    print("\n[METRICS] Merit Safety Rate (Bottom 3 Judge Scorers):")
-    for sys, rate in safety_rates.items():
+    print("\n[METRICS] Mediocrity Survival Rate (Bottom 3 Judge Scorers - Lower = More Meritocratic):")
+    for sys, rate in mediocrity_rates.items():
+        print(f"  - {sys}: {rate:.2%}")
+    
+    print("\n[METRICS] Talent Elimination Rate (Top 3 Judge Scorers - Lower = Better Protection):")
+    for sys, rate in talent_elim_rates.items():
         print(f"  - {sys}: {rate:.2%}")
     
     # Step 4: Save results
@@ -709,22 +1008,29 @@ def main():
     
     # Step 5: Generate visualizations
     plot_fan_bias_comparison(fpi)
-    plot_merit_safety(safety_rates)
+    plot_mediocrity_survival(mediocrity_rates, talent_elim_rates)  # UPDATED
     plot_bobby_bones_survival(rank_df, results_df)
     
-    # Step 6: Print summary
+    # Step 6: Celebrity Case Studies (NEW - addresses all 4 controversial figures)
+    celebrity_results = analyze_all_celebrities(rank_df, results_df)
+    
+    # Step 7: Print summary
     print("\n" + "="*70)
     print("SUMMARY")
     print("="*70)
     print(f"Total weeks simulated: {len(results_df)}")
     print(f"Reversal Rate (Rank vs Percent): {reversal_rate:.2%}")
     print(f"System C Validation Accuracy (S28-34): {validation_accuracy:.2%}")
+    print(f"\nCelebrity Case Studies Analyzed: {len(celebrity_results)}")
+    for name, data in celebrity_results.items():
+        print(f"  - {name} (S{data['season']}): Bottom 3 Judge {data['bottom3_count']}/{data['total_weeks']} weeks")
     print(f"\nOutput files:")
     print(f"  - Counterfactual outcomes: {OUTPUT_PATH}")
     print(f"  - Contestant rankings: {rank_output}")
     print(f"  - Fan bias plot: {PLOTS_DIR / 'q2_fan_bias_comparison.png'}")
-    print(f"  - Merit safety plot: {PLOTS_DIR / 'q2_merit_safety.png'}")
+    print(f"  - Merit metrics plot: {PLOTS_DIR / 'q2_merit_metrics.png'}")
     print(f"  - Bobby Bones plot: {PLOTS_DIR / 'q2_bobby_bones_survival.png'}")
+    print(f"  - Celebrity combined plot: {PLOTS_DIR / 'q2_celebrity_combined.png'}")
     print("\n" + "="*70)
 
 
