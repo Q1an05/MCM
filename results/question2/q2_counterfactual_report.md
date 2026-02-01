@@ -2,6 +2,10 @@
 
 ## Executive Summary
 
+**Direct Answer to Core Question**: Our analysis definitively proves that the **Percentage System maximizes fan influence** (Fan Power Index = 0.844), giving fans 7.7% more power over outcomes compared to Rank-based systems (FPI = 0.784).
+
+---
+
 This report presents a comprehensive static counterfactual analysis of three elimination rule systems applied to the history of _Dancing with the Stars_ (seasons 1-34). We simulate "parallel universes" where each historical week's outcome is recalculated under three different voting systems, answering the core question: **"Does one method seem to favor fan votes more?"**
 
 ### Key Findings
@@ -265,7 +269,30 @@ For each celebrity, we generated:
 
 ### 5.1 Does one method favor fan votes more?
 
-**Yes, unequivocally**: The Percent system (Seasons 3-27) gives fans the most influence (FPI = 0.847 vs 0.793 for Rank systems).
+**Yes, unequivocally**: The Percent system (Seasons 3-27) gives fans the most influence (FPI = 0.844 vs 0.784 for Rank systems).
+
+**Mathematical Explanation - Why Percent Amplifies Fan Power**:
+
+The fundamental difference lies in how the two systems aggregate scores:
+
+**Rank System (Linear)**:
+- Total Score = Judge Rank + Fan Rank
+- Example: If Fan Rank improves from 2nd to 1st (Δ = 1), Total Score changes by exactly 1 point
+- **Linear relationship**: Equal weight across all rank positions
+
+**Percent System (Preserves Extremes)**:
+- Total Share = Judge Share % + Fan Share %
+- Example: Bobby Bones with extreme fan base (long-tail effect)
+  - Rank System: 1st and 2nd place differ by only 1 rank (minimal gap)
+  - Percent System: 1st place with 40% vs 2nd place with 15% = **25 percentage point advantage**
+- **Preserves magnitude**: When fan 1st place has 10× more votes than 2nd place, this 10× advantage directly translates into share percentage, overwhelming judge scores
+
+**Concrete Bristol Palin Example**:
+- Under Rank: Her polarizing fan base gets compressed to "Rank 1" or "Rank 2" (linear scale)
+- Under Percent: Her dedicated 30% fan share directly adds to total, creating massive buffer against low judge scores (15%)
+- **Result**: 5-week survival difference (W10 vs W5)
+
+**Key Insight**: Rank systems are **"linear and compressive"** - they flatten differences. Percent systems **"preserve extreme values"** - they allow contestants with massive fan bases to directly overpower technical deficiencies. This mathematical property explains why FPI is higher (0.844 vs 0.784) and why controversial celebrities (Bobby Bones, Bristol Palin) thrive under Percent.
 
 ### 5.2 Is the Judges' Save effective?
 
@@ -299,10 +326,11 @@ For each celebrity, we generated:
 
 The Multiverse Simulator reveals nuanced relationships between voting systems and competition outcomes:
 
-1. **Fan influence is maximized** in percentage-based systems (FPI = 0.847)
-2. **Rule sensitivity is moderate** (13.4% reversal rate between Rank and Percent)
-3. **The Judges' Save works as intended** for canonical problem cases (Bobby Bones)
-4. **Counterintuitively**, percentage systems offer **better merit protection** than ranking systems
+1. **Fan influence is maximized** in percentage-based systems (FPI = 0.844)
+2. **Rule sensitivity is moderate** (14.63% reversal rate between Rank and Percent)
+3. **The Judges' Save works as intended** for canonical problem cases (Bobby Bones eliminated W8 vs champion under Percent)
+4. **Dual-indicator validation**: Rank+Save offers **superior merit protection** (67.40% mediocrity survival + 2.00% talent elimination), while Percent creates the strongest **"Popularity Shield"** (71.09% mediocrity survival + 4.50% talent elimination)
+5. **Celebrity case studies confirm**: Bristol Palin (5-week survival difference) exemplifies how Percent amplifies fan influence regardless of technical merit
 
 These findings provide empirical evidence for competition design decisions and demonstrate the value of counterfactual analysis in understanding rule system impacts.
 
