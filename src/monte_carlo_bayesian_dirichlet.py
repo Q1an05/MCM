@@ -70,6 +70,9 @@ OUTPUT_PATH = BASE_DIR / "results" / "full_simulation_bayesian.csv"
 N_SIMULATIONS = 10000
 RANDOM_SEED = 42
 
+# Judges' Save merit-based probability (from historical analysis)
+MERIT_SAVE_PROB = 0.775
+
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │           方案 A: 混合贝叶斯模型 (Mixture Bayesian Model)                     │
 # │           Pure Skill + Momentum + Chaos (Pareto/Uniform Tail)               │
@@ -286,10 +289,16 @@ def apply_rank_with_save_rule(
     judge_scores_first = judge_scores[bottom2_first]
     judge_scores_second = judge_scores[bottom2_second]
     
+    # Probabilistic judges' save
+    prob = np.random.random(n_sims)
+    rational_elim = np.where(judge_scores_first < judge_scores_second, bottom2_first, bottom2_second)
+    irrational_elim = np.where(judge_scores_first < judge_scores_second, bottom2_second, bottom2_first)
+    is_tie = (judge_scores_first == judge_scores_second)
+    
     return np.where(
-        judge_scores_first < judge_scores_second,
+        is_tie,
         bottom2_first,
-        np.where(judge_scores_second < judge_scores_first, bottom2_second, bottom2_first)
+        np.where(prob < MERIT_SAVE_PROB, rational_elim, irrational_elim)
     )
 
 

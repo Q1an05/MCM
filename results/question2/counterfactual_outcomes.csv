@@ -2,12 +2,12 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 1,1,6,Rank,,Kelly Monaco,Kelly Monaco,Kelly Monaco,False
 1,2,6,Rank,Trista Sutter,Trista Sutter,Trista Sutter,Kelly Monaco,False
 1,3,5,Rank,Evander Holyfield,Evander Holyfield,Evander Holyfield,Evander Holyfield,False
-1,4,4,Rank,Rachel Hunter,Rachel Hunter,Rachel Hunter,Joey McIntyre,False
+1,4,4,Rank,Rachel Hunter,Rachel Hunter,Rachel Hunter,Rachel Hunter,False
 1,5,3,Rank,,Kelly Monaco,Kelly Monaco,Joey McIntyre,False
 1,6,2,Rank,,Kelly Monaco,Kelly Monaco,John O'Hurley,False
 2,1,10,Rank,Kenny Mayne,Kenny Mayne,Kenny Mayne,Master P,False
 2,2,9,Rank,Tatum O'Neal,Tatum O'Neal,Tatum O'Neal,Master P,False
-2,3,8,Rank,Giselle Fernandez,Giselle Fernandez,Giselle Fernandez,Master P,False
+2,3,8,Rank,Giselle Fernandez,Giselle Fernandez,Giselle Fernandez,Giselle Fernandez,False
 2,4,7,Rank,Master P,Master P,Master P,Master P,False
 2,5,6,Rank,Tia Carrere,Tia Carrere,Tia Carrere,Tia Carrere,False
 2,6,5,Rank,George Hamilton,George Hamilton,George Hamilton,George Hamilton,False
@@ -17,9 +17,9 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 3,2,10,Percent,Shanna Moakler,Jerry Springer,Shanna Moakler,Jerry Springer,True
 3,3,9,Percent,Harry Hamlin,Jerry Springer,Harry Hamlin,Emmitt Smith,True
 3,4,8,Percent,Vivica A. Fox,Vivica A. Fox,Vivica A. Fox,Sara Evans,False
-3,5,7,Percent,Willa Ford,Jerry Springer,Willa Ford,Jerry Springer,True
+3,5,7,Percent,Willa Ford,Jerry Springer,Willa Ford,Willa Ford,True
 3,6,5,Percent,,Jerry Springer,Jerry Springer,Jerry Springer,False
-3,7,5,Percent,Jerry Springer,Jerry Springer,Jerry Springer,Jerry Springer,False
+3,7,5,Percent,Jerry Springer,Jerry Springer,Jerry Springer,Monique Coleman,False
 3,8,4,Percent,Monique Coleman,Monique Coleman,Monique Coleman,Monique Coleman,False
 3,9,3,Percent,,Emmitt Smith,Emmitt Smith,Emmitt Smith,False
 3,10,2,Percent,,Emmitt Smith,Emmitt Smith,Emmitt Smith,False
@@ -27,10 +27,10 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 4,2,11,Percent,Paulina Porizkova,Paulina Porizkova,Paulina Porizkova,Clyde Drexler,False
 4,3,10,Percent,Shandi Finnessey,Shandi Finnessey,Shandi Finnessey,Shandi Finnessey,False
 4,4,9,Percent,Leeza Gibbons,Leeza Gibbons,Leeza Gibbons,Clyde Drexler,False
-4,5,8,Percent,Clyde Drexler,Clyde Drexler,Clyde Drexler,Clyde Drexler,False
-4,6,7,Percent,Heather Mills,Heather Mills,Heather Mills,Heather Mills,False
-4,7,6,Percent,John Ratzenberger,John Ratzenberger,John Ratzenberger,Billy Ray Cyrus,False
-4,8,5,Percent,Billy Ray Cyrus,Billy Ray Cyrus,Billy Ray Cyrus,Billy Ray Cyrus,False
+4,5,8,Percent,Clyde Drexler,Clyde Drexler,Clyde Drexler,Billy Ray Cyrus,False
+4,6,7,Percent,Heather Mills,Heather Mills,Heather Mills,Joey Fatone,False
+4,7,6,Percent,John Ratzenberger,John Ratzenberger,John Ratzenberger,John Ratzenberger,False
+4,8,5,Percent,Billy Ray Cyrus,Billy Ray Cyrus,Billy Ray Cyrus,Ian Ziering,False
 4,9,4,Percent,Ian Ziering,Ian Ziering,Ian Ziering,Ian Ziering,False
 4,10,3,Percent,,Laila Ali,Laila Ali,Laila Ali,False
 5,1,12,Percent,Josie Maran,Josie Maran,Josie Maran,Josie Maran,False
@@ -39,7 +39,7 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 5,4,9,Percent,Floyd Mayweather Jr. ,Floyd Mayweather Jr. ,Floyd Mayweather Jr. ,Mark Cuban,False
 5,5,8,Percent,Mark Cuban,Mark Cuban,Mark Cuban,Mark Cuban,False
 5,6,7,Percent,Sabrina Bryan,Sabrina Bryan,Sabrina Bryan,Marie Osmond,False
-5,7,6,Percent,Jane Seymour,Jane Seymour,Jane Seymour,Jane Seymour,False
+5,7,6,Percent,Jane Seymour,Jane Seymour,Jane Seymour,Cameron Mathison,False
 5,8,5,Percent,Cameron Mathison,Marie Osmond,Cameron Mathison,Marie Osmond,True
 5,9,4,Percent,Jennie Garth,Jennie Garth,Jennie Garth,Marie Osmond,False
 5,10,3,Percent,,Marie Osmond,Marie Osmond,Marie Osmond,False
@@ -55,10 +55,10 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 6,10,3,Percent,,Cristian de la Fuente,Cristian de la Fuente,Cristian de la Fuente,False
 7,1,13,Percent,Ted McGinley,Jeffrey Ross,Jeffrey Ross,Jeffrey Ross,False
 7,2,11,Percent,Kim Kardashian,Kim Kardashian,Kim Kardashian,Rocco DiSpirito,False
-7,3,9,Percent,,Cloris Leachman,Cloris Leachman,Cloris Leachman,False
+7,3,9,Percent,,Cloris Leachman,Cloris Leachman,Rocco DiSpirito,False
 7,4,9,Percent,Rocco DiSpirito,Rocco DiSpirito,Rocco DiSpirito,Rocco DiSpirito,False
 7,5,8,Percent,Toni Braxton,Cloris Leachman,Toni Braxton,Cloris Leachman,True
-7,6,7,Percent,Cloris Leachman,Cloris Leachman,Cloris Leachman,Cloris Leachman,False
+7,6,7,Percent,Cloris Leachman,Cloris Leachman,Cloris Leachman,Maurice Greene,False
 7,7,6,Percent,Susan Lucci,Susan Lucci,Susan Lucci,Cody Linley,False
 7,8,5,Percent,Maurice Greene,Maurice Greene,Maurice Greene,Maurice Greene,False
 7,9,4,Percent,Cody Linley,Cody Linley,Cody Linley,Cody Linley,False
@@ -68,29 +68,29 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 8,3,12,Percent,Denise Richards,Denise Richards,Denise Richards,Steve-O,False
 8,4,11,Percent,Steve Wozniak,Holly Madison,Holly Madison,Steve-O,False
 8,5,9,Percent,David Alan Grier,Lawrence Taylor,David Alan Grier,Lawrence Taylor,True
-8,6,8,Percent,Steve-O,Steve-O,Steve-O,Steve-O,False
+8,6,8,Percent,Steve-O,Steve-O,Steve-O,Lawrence Taylor,False
 8,7,7,Percent,Lawrence Taylor,Lawrence Taylor,Lawrence Taylor,Lawrence Taylor,False
 8,8,6,Percent,Chuck Wicks,Chuck Wicks,Chuck Wicks,Melissa Rycroft,False
 8,9,5,Percent,Lil' Kim,Lil' Kim,Lil' Kim,Lil' Kim,False
 8,10,4,Percent,Ty Murray,Ty Murray,Ty Murray,Ty Murray,False
 8,11,3,Percent,,Melissa Rycroft,Melissa Rycroft,Melissa Rycroft,False
-9,1,16,Percent,Ashley Hamiliton,Ashley Hamiliton,Ashley Hamiliton,Ashley Hamiliton,False
+9,1,16,Percent,Ashley Hamiliton,Ashley Hamiliton,Ashley Hamiliton,Michael Irvin,False
 9,2,14,Percent,Kathy Ireland,Kathy Ireland,Kathy Ireland,Kathy Ireland,False
 9,3,13,Percent,Debi Mazar,Debi Mazar,Debi Mazar,Tom DeLay,False
 9,4,11,Percent,Chuck Liddell,Michael Irvin,Chuck Liddell,Michael Irvin,True
 9,5,10,Percent,Natalie Coughlin,Natalie Coughlin,Natalie Coughlin,Natalie Coughlin,False
 9,6,9,Percent,Melissa Joan Hart,Louie Vito,Louie Vito,Melissa Joan Hart,False
-9,7,7,Percent,Mark Dacascos,Mark Dacascos,Mark Dacascos,Mark Dacascos,False
+9,7,7,Percent,Mark Dacascos,Mark Dacascos,Mark Dacascos,Michael Irvin,False
 9,8,5,Percent,Aaron Carter,Aaron Carter,Aaron Carter,Aaron Carter,False
-9,9,4,Percent,Joanna Krupa,Donny Osmond,Joanna Krupa,Donny Osmond,True
+9,9,4,Percent,Joanna Krupa,Donny Osmond,Joanna Krupa,Joanna Krupa,True
 9,10,3,Percent,,Kelly Osbourne,Kelly Osbourne,Kelly Osbourne,False
 10,1,11,Percent,,Buzz Aldrin,Buzz Aldrin,Buzz Aldrin,False
 10,2,11,Percent,Shannen Doherty,Aiden Turner,Shannen Doherty,Aiden Turner,True
 10,3,10,Percent,Buzz Aldrin,Buzz Aldrin,Buzz Aldrin,Buzz Aldrin,False
-10,4,9,Percent,Aiden Turner,Aiden Turner,Aiden Turner,Kate Gosselin,False
+10,4,9,Percent,Aiden Turner,Aiden Turner,Aiden Turner,Aiden Turner,False
 10,5,8,Percent,Kate Gosselin,Kate Gosselin,Kate Gosselin,Kate Gosselin,False
 10,6,7,Percent,Jake Pavelka,Jake Pavelka,Jake Pavelka,Jake Pavelka,False
-10,7,6,Percent,Pamela Anderson,Pamela Anderson,Pamela Anderson,Niecy Nash,False
+10,7,6,Percent,Pamela Anderson,Pamela Anderson,Pamela Anderson,Pamela Anderson,False
 10,8,5,Percent,Niecy Nash,Niecy Nash,Niecy Nash,Niecy Nash,False
 10,9,4,Percent,Chad Ochocinco,Chad Ochocinco,Chad Ochocinco,Chad Ochocinco,False
 10,10,3,Percent,,Erin Andrews,Erin Andrews,Evan Lysacek,False
@@ -101,28 +101,28 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 11,5,8,Percent,Florence Henderson,Bristol Palin,Florence Henderson,Bristol Palin,True
 11,6,7,Percent,Audrina Patridge,Bristol Palin,Kurt Warner,Kurt Warner,True
 11,7,6,Percent,Rick Fox,Bristol Palin,Rick Fox,Bristol Palin,True
-11,8,5,Percent,Kurt Warner,Kurt Warner,Kurt Warner,Bristol Palin,False
+11,8,5,Percent,Kurt Warner,Kurt Warner,Kurt Warner,Kurt Warner,False
 11,9,4,Percent,Brandy,Brandy,Brandy,Bristol Palin,False
 11,10,3,Percent,,Bristol Palin,Bristol Palin,Bristol Palin,False
 12,1,11,Percent,,Mike Catherwood,Mike Catherwood,Mike Catherwood,False
 12,2,11,Percent,Mike Catherwood,Mike Catherwood,Mike Catherwood,Mike Catherwood,False
-12,3,10,Percent,Wendy Williams,Wendy Williams,Wendy Williams,Wendy Williams,False
-12,4,9,Percent,Sugar Ray Leonard,Sugar Ray Leonard,Sugar Ray Leonard,Kendra Wilkinson,False
+12,3,10,Percent,Wendy Williams,Wendy Williams,Wendy Williams,Sugar Ray Leonard,False
+12,4,9,Percent,Sugar Ray Leonard,Sugar Ray Leonard,Sugar Ray Leonard,Sugar Ray Leonard,False
 12,5,8,Percent,Petra Nemcova,Petra Nemcova,Petra Nemcova,Petra Nemcova,False
 12,6,7,Percent,Chris Jericho,Chris Jericho,Chris Jericho,Chris Jericho,False
-12,7,6,Percent,Kendra Wilkinson,Kirstie Alley,Kendra Wilkinson,Kirstie Alley,True
-12,8,5,Percent,Romeo,Romeo,Romeo,Ralph Macchio,False
+12,7,6,Percent,Kendra Wilkinson,Kirstie Alley,Kendra Wilkinson,Kendra Wilkinson,True
+12,8,5,Percent,Romeo,Romeo,Romeo,Romeo,False
 12,9,4,Percent,Ralph Macchio,Ralph Macchio,Ralph Macchio,Ralph Macchio,False
-12,10,3,Percent,,Kirstie Alley,Kirstie Alley,Kirstie Alley,False
+12,10,3,Percent,,Kirstie Alley,Kirstie Alley,Chelsea Kane,False
 13,1,12,Percent,Metta World Peace (Ron),Metta World Peace (Ron),Metta World Peace (Ron),Metta World Peace (Ron),False
 13,2,11,Percent,Elisabetta Canalis,Carson Kressley,Elisabetta Canalis,Chaz Bono,True
-13,3,10,Percent,Kristin Cavallari,Chaz Bono,Kristin Cavallari,Chaz Bono,True
+13,3,10,Percent,Kristin Cavallari,Chaz Bono,Kristin Cavallari,Carson Kressley,True
 13,4,9,Percent,Chynna Phillips,Chynna Phillips,Chynna Phillips,Chynna Phillips,False
 13,5,8,Percent,Carson Kressley,Carson Kressley,Carson Kressley,Carson Kressley,False
 13,6,7,Percent,Chaz Bono,Chaz Bono,Chaz Bono,Chaz Bono,False
-13,7,6,Percent,David Arquette,David Arquette,David Arquette,Nancy Grace,False
-13,8,5,Percent,Nancy Grace,Nancy Grace,Nancy Grace,Nancy Grace,False
-13,9,4,Percent,Hope Solo,Hope Solo,Hope Solo,Hope Solo,False
+13,7,6,Percent,David Arquette,David Arquette,David Arquette,David Arquette,False
+13,8,5,Percent,Nancy Grace,Nancy Grace,Nancy Grace,Rob Kardashian,False
+13,9,4,Percent,Hope Solo,Hope Solo,Hope Solo,Rob Kardashian,False
 13,10,3,Percent,,Ricki Lake,Rob Kardashian,Ricki Lake,True
 14,1,12,Percent,,Melissa Gilbert,Melissa Gilbert,Martina Navratilova,False
 14,2,12,Percent,Martina Navratilova,Martina Navratilova,Martina Navratilova,Martina Navratilova,False
@@ -138,13 +138,13 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 15,2,12,Percent,Joey Fatone,Kirstie Alley,Joey Fatone,Bristol Palin,True
 15,3,11,Percent,Helio Castroneves,Drew Lachey,Drew Lachey,Drew Lachey,False
 15,4,9,Percent,Bristol Palin,Bristol Palin,Bristol Palin,Kirstie Alley,False
-15,5,8,Percent,,Kirstie Alley,Kirstie Alley,Kelly Monaco,False
+15,5,8,Percent,,Kirstie Alley,Kirstie Alley,Kirstie Alley,False
 15,6,8,Percent,Sabrina Bryan,Kelly Monaco,Kirstie Alley,Emmitt Smith,True
-15,7,7,Percent,,Kirstie Alley,Kirstie Alley,Kirstie Alley,False
+15,7,7,Percent,,Kirstie Alley,Kirstie Alley,Apolo Anton Ohno,False
 15,8,7,Percent,Gilles Marini,Kirstie Alley,Gilles Marini,Kirstie Alley,True
 15,9,5,Percent,Apolo Anton Ohno,Emmitt Smith,Apolo Anton Ohno,Emmitt Smith,True
 15,10,3,Percent,,Kelly Monaco,Kelly Monaco,Shawn Johnson,False
-16,1,12,Percent,,D. L. Hughley,D. L. Hughley,D. L. Hughley,False
+16,1,12,Percent,,D. L. Hughley,D. L. Hughley,Andy Dick,False
 16,2,12,Percent,,D. L. Hughley,D. L. Hughley,Dorothy Hamill,False
 16,3,11,Percent,Wynonna Judd,Wynonna Judd,Wynonna Judd,Wynonna Judd,False
 16,4,10,Percent,Lisa Vanderpump,Lisa Vanderpump,Lisa Vanderpump,Lisa Vanderpump,False
@@ -153,33 +153,33 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 16,7,7,Percent,Andy Dick,Andy Dick,Andy Dick,Andy Dick,False
 16,8,6,Percent,Sean Lowe,Sean Lowe,Sean Lowe,Sean Lowe,False
 16,9,5,Percent,Ingo Rademacher,Ingo Rademacher,Ingo Rademacher,Ingo Rademacher,False
-16,10,4,Percent,Alexandra Raisman,Alexandra Raisman,Alexandra Raisman,Jacoby Jones,False
+16,10,4,Percent,Alexandra Raisman,Alexandra Raisman,Alexandra Raisman,Alexandra Raisman,False
 17,1,12,Percent,,Bill Nye,Bill Nye,Bill Nye,False
 17,2,12,Percent,Keyshawn Johnson,Keyshawn Johnson,Keyshawn Johnson,Keyshawn Johnson,False
 17,3,11,Percent,Bill Nye,Bill Nye,Bill Nye,Bill Nye,False
 17,4,10,Percent,Valerie Harper,Valerie Harper,Valerie Harper,Valerie Harper,False
 17,5,9,Percent,Christina Milian,Bill Engvall,Christina Milian,Leah Remini,True
 17,6,8,Percent,,Bill Engvall,Bill Engvall,Bill Engvall,False
-17,7,8,Percent,"Nicole ""Snooki"" Polizzi",Leah Remini,"Nicole ""Snooki"" Polizzi",Bill Engvall,True
-17,8,7,Percent,Brant Daugherty,Brant Daugherty,Brant Daugherty,Bill Engvall,False
+17,7,8,Percent,"Nicole ""Snooki"" Polizzi",Leah Remini,"Nicole ""Snooki"" Polizzi",Leah Remini,True
+17,8,7,Percent,Brant Daugherty,Brant Daugherty,Brant Daugherty,Brant Daugherty,False
 17,9,6,Percent,Elizabeth Berkley Lauren,Bill Engvall,Elizabeth Berkley Lauren,Bill Engvall,True
 17,10,5,Percent,Leah Remini,Leah Remini,Leah Remini,Bill Engvall,False
 17,11,4,Percent,Bill Engvall,Bill Engvall,Bill Engvall,Bill Engvall,False
-18,1,12,Percent,,Billy Dee Williams,Billy Dee Williams,Billy Dee Williams,False
+18,1,12,Percent,,Billy Dee Williams,Billy Dee Williams,Diana Nyad,False
 18,2,11,Percent,Sean Avery,Sean Avery,Sean Avery,Sean Avery,False
-18,3,9,Percent,,Drew Carey,Drew Carey,Drew Carey,False
-18,4,9,Percent,,Candace Cameron Bure,Candace Cameron Bure,Candace Cameron Bure,False
+18,3,9,Percent,,Drew Carey,Drew Carey,NeNe Leakes,False
+18,4,9,Percent,,Candace Cameron Bure,Candace Cameron Bure,Cody Simpson,False
 18,5,9,Percent,Cody Simpson,Cody Simpson,Cody Simpson,Cody Simpson,False
 18,6,8,Percent,Drew Carey,Drew Carey,Drew Carey,Drew Carey,False
 18,7,7,Percent,NeNe Leakes,NeNe Leakes,NeNe Leakes,NeNe Leakes,False
-18,8,6,Percent,Danica McKellar,Danica McKellar,Danica McKellar,Candace Cameron Bure,False
+18,8,6,Percent,Danica McKellar,Danica McKellar,Danica McKellar,Danica McKellar,False
 18,9,5,Percent,Charlie White,Charlie White,Charlie White,Charlie White,False
 18,10,4,Percent,James Maslow,James Maslow,James Maslow,Candace Cameron Bure,False
 19,1,13,Percent,Lolo Jones,Lolo Jones,Lolo Jones,Betsey Johnson,False
 19,2,12,Percent,Tavis Smiley,Tavis Smiley,Tavis Smiley,Tavis Smiley,False
 19,3,11,Percent,Randy Couture,Randy Couture,Randy Couture,Randy Couture,False
 19,4,10,Percent,Betsey Johnson,Michael Waltrip,Betsey Johnson,Michael Waltrip,True
-19,5,9,Percent,,Michael Waltrip,Michael Waltrip,Michael Waltrip,False
+19,5,9,Percent,,Michael Waltrip,Michael Waltrip,Tommy Chong,False
 19,6,9,Percent,Jonathan Bennett,Antonio Sabato Jr.,Jonathan Bennett,Antonio Sabato Jr.,True
 19,7,8,Percent,Antonio Sabato Jr.,Antonio Sabato Jr.,Antonio Sabato Jr.,Michael Waltrip,False
 19,8,7,Percent,Michael Waltrip,Michael Waltrip,Michael Waltrip,Michael Waltrip,False
@@ -192,9 +192,9 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 20,4,10,Percent,Michael Sam,Michael Sam,Michael Sam,Suzanne Somers,False
 20,5,9,Percent,Suzanne Somers,Patti LaBelle,Suzanne Somers,Patti LaBelle,True
 20,6,8,Percent,Patti LaBelle,Patti LaBelle,Patti LaBelle,Robert Herjavec,False
-20,7,7,Percent,Willow Shields,Robert Herjavec,Willow Shields,Robert Herjavec,True
+20,7,7,Percent,Willow Shields,Robert Herjavec,Willow Shields,Willow Shields,True
 20,8,6,Percent,Robert Herjavec,Robert Herjavec,Chris Soules,Robert Herjavec,True
-20,9,4,Percent,Nastia Liukin,Noah Galloway,Nastia Liukin,Noah Galloway,True
+20,9,4,Percent,Nastia Liukin,Noah Galloway,Nastia Liukin,Nastia Liukin,True
 20,10,3,Percent,,Noah Galloway,Noah Galloway,Noah Galloway,False
 21,1,13,Percent,,Kim Zolciak-Biermann,Kim Zolciak-Biermann,Kim Zolciak-Biermann,False
 21,2,13,Percent,Victor Espinoza,Chaka Khan,Chaka Khan,Chaka Khan,False
@@ -204,26 +204,26 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 21,6,9,Percent,Paula Deen,Paula Deen,Paula Deen,Paula Deen,False
 21,7,8,Percent,Hayes Grier,Alek Skarlatos,Hayes Grier,Alek Skarlatos,True
 21,8,7,Percent,Andy Grammer,Andy Grammer,Andy Grammer,Andy Grammer,False
-21,9,6,Percent,Alexa PenaVega,Carlos PenaVega,Alexa PenaVega,Alek Skarlatos,True
+21,9,6,Percent,Alexa PenaVega,Carlos PenaVega,Alexa PenaVega,Carlos PenaVega,True
 21,10,4,Percent,,Alek Skarlatos,Alek Skarlatos,Nick Carter,False
 21,11,4,Percent,Carlos PenaVega,Carlos PenaVega,Carlos PenaVega,Alek Skarlatos,False
-22,1,12,Percent,,Geraldo Rivera,Geraldo Rivera,Geraldo Rivera,False
+22,1,12,Percent,,Geraldo Rivera,Geraldo Rivera,Doug Flutie,False
 22,2,12,Percent,Geraldo Rivera,Geraldo Rivera,Geraldo Rivera,Geraldo Rivera,False
 22,3,11,Percent,Mischa Barton,Mischa Barton,Mischa Barton,Mischa Barton,False
 22,4,10,Percent,Marla Maples,Doug Flutie,Marla Maples,Doug Flutie,True
 22,5,9,Percent,,Antonio Brown,Doug Flutie,Antonio Brown,True
-22,6,9,Percent,Doug Flutie,Doug Flutie,Doug Flutie,Doug Flutie,False
+22,6,9,Percent,Doug Flutie,Doug Flutie,Doug Flutie,Von Miller,False
 22,7,8,Percent,Kim Fields,Kim Fields,Kim Fields,Kim Fields,False
 22,8,6,Percent,Jodie Sweetin,Antonio Brown,Jodie Sweetin,Wanya Morris,True
 22,9,5,Percent,Antonio Brown,Antonio Brown,Antonio Brown,Antonio Brown,False
-22,10,3,Percent,,Ginger Zee,Ginger Zee,Ginger Zee,False
+22,10,3,Percent,,Ginger Zee,Ginger Zee,Nyle DiMarco,False
 23,1,13,Percent,,Rick Perry,Rick Perry,Rick Perry,False
 23,2,13,Percent,Jake T. Austin,Jake T. Austin,Jake T. Austin,Jake T. Austin,False
 23,3,12,Percent,Rick Perry,Rick Perry,Rick Perry,Rick Perry,False
-23,4,11,Percent,Babyface,Babyface,Babyface,Babyface,False
+23,4,11,Percent,Babyface,Babyface,Babyface,Ryan Lochte,False
 23,5,9,Percent,,Ryan Lochte,Ryan Lochte,Ryan Lochte,False
 23,6,9,Percent,Amber Rose,Amber Rose,Amber Rose,Amber Rose,False
-23,7,8,Percent,Maureen McCormick,Maureen McCormick,Maureen McCormick,Marilu Henner,False
+23,7,8,Percent,Maureen McCormick,Maureen McCormick,Maureen McCormick,Maureen McCormick,False
 23,8,7,Percent,Ryan Lochte,Marilu Henner,Ryan Lochte,Marilu Henner,True
 23,9,6,Percent,Marilu Henner,Marilu Henner,Marilu Henner,Marilu Henner,False
 23,10,5,Percent,Terra Jole,Calvin Johnson Jr.,Terra Jole,Calvin Johnson Jr.,True
@@ -234,25 +234,25 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 24,4,10,Percent,Mr. T,Mr. T,Mr. T,Mr. T,False
 24,5,9,Percent,Erika Jayne,Erika Jayne,Erika Jayne,Bonner Bolton,False
 24,6,8,Percent,Heather Morris,Nick Viall,Nick Viall,Nick Viall,False
-24,7,7,Percent,Nancy Kerrigan,Nancy Kerrigan,Nancy Kerrigan,Nick Viall,False
+24,7,7,Percent,Nancy Kerrigan,Nancy Kerrigan,Nancy Kerrigan,Nancy Kerrigan,False
 24,8,5,Percent,Bonner Bolton,Bonner Bolton,Bonner Bolton,Bonner Bolton,False
 24,9,4,Percent,Simone Biles,Normani,Simone Biles,David Ross,True
 24,10,3,Percent,,David Ross,David Ross,David Ross,False
 25,1,13,Percent,,Barbara Corcoran,Barbara Corcoran,Barbara Corcoran,False
 25,2,13,Percent,Barbara Corcoran,Barbara Corcoran,Barbara Corcoran,Barbara Corcoran,False
-25,3,11,Percent,,Terrell Owens,Terrell Owens,Sasha Pieterse,False
-25,4,11,Percent,Derek Fisher,Derek Fisher,Derek Fisher,Nick Lachey,False
-25,5,10,Percent,Sasha Pieterse,Sasha Pieterse,Sasha Pieterse,Nick Lachey,False
-25,6,9,Percent,Nick Lachey,Nick Lachey,Nick Lachey,Nick Lachey,False
+25,3,11,Percent,,Terrell Owens,Terrell Owens,Terrell Owens,False
+25,4,11,Percent,Derek Fisher,Derek Fisher,Derek Fisher,Derek Fisher,False
+25,5,10,Percent,Sasha Pieterse,Sasha Pieterse,Sasha Pieterse,Sasha Pieterse,False
+25,6,9,Percent,Nick Lachey,Nick Lachey,Nick Lachey,Drew Scott,False
 25,7,8,Percent,Nikki Bella,Nikki Bella,Nikki Bella,Nikki Bella,False
-25,8,6,Percent,Terrell Owens,Drew Scott,Terrell Owens,Drew Scott,True
-25,9,5,Percent,Victoria Arlen,Victoria Arlen,Victoria Arlen,Drew Scott,False
+25,8,6,Percent,Terrell Owens,Drew Scott,Terrell Owens,Terrell Owens,True
+25,9,5,Percent,Victoria Arlen,Victoria Arlen,Victoria Arlen,Victoria Arlen,False
 25,10,4,Percent,Drew Scott,Drew Scott,Drew Scott,Drew Scott,False
 26,1,10,Percent,Jamie Anderson,Jamie Anderson,Jamie Anderson,Johnny Damon,False
-26,2,8,Percent,Kareem Abdul-Jabbar,Kareem Abdul-Jabbar,Arike Ogunbowale,Kareem Abdul-Jabbar,True
-26,3,6,Percent,Jennie Finch Daigle,Chris Mazdzer,Chris Mazdzer,Jennie Finch Daigle,False
+26,2,8,Percent,Kareem Abdul-Jabbar,Kareem Abdul-Jabbar,Arike Ogunbowale,Jennie Finch Daigle,True
+26,3,6,Percent,Jennie Finch Daigle,Chris Mazdzer,Chris Mazdzer,Chris Mazdzer,False
 26,4,3,Percent,,Tonya Harding,Tonya Harding,Tonya Harding,False
-27,1,13,Percent,Nikki Glaser,Nikki Glaser,Nikki Glaser,Nikki Glaser,False
+27,1,13,Percent,Nikki Glaser,Nikki Glaser,Nikki Glaser,Evanna Lynch,False
 27,2,12,Percent,Danelle Umstead,Danelle Umstead,Danelle Umstead,Joe Amabile,False
 27,3,11,Percent,Nancy McKeon,Nancy McKeon,Nancy McKeon,John Schneider,False
 27,4,10,Percent,Tinashe,Joe Amabile,Joe Amabile,Joe Amabile,False
@@ -269,7 +269,7 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 28,6,9,Rank_With_Save,Sailor Brinkley-Cook,Sean Spicer,Sean Spicer,Sean Spicer,False
 28,7,8,Rank_With_Save,Karamo Brown,Karamo Brown,Karamo Brown,Karamo Brown,False
 28,8,7,Rank_With_Save,Kate Flannery,Kate Flannery,Kate Flannery,Kate Flannery,False
-28,9,6,Rank_With_Save,Sean Spicer,Sean Spicer,Sean Spicer,Sean Spicer,False
+28,9,6,Rank_With_Save,Sean Spicer,Sean Spicer,Sean Spicer,Lauren Alaina,False
 28,10,5,Rank_With_Save,James Van Der Beek,James Van Der Beek,Lauren Alaina,James Van Der Beek,True
 28,11,4,Rank_With_Save,,Lauren Alaina,Lauren Alaina,Lauren Alaina,False
 29,1,15,Rank_With_Save,,Carole Baskin,Carole Baskin,Carole Baskin,False
@@ -280,14 +280,14 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 29,6,11,Rank_With_Save,Veron Davis,Veron Davis,Veron Davis,Veron Davis,False
 29,7,10,Rank_With_Save,Monica Aldama,Monica Aldama,Monica Aldama,Monica Aldama,False
 29,8,8,Rank_With_Save,Chrishell Stause,Chrishell Stause,Kaitlyn Bristowe,Chrishell Stause,True
-29,9,7,Rank_With_Save,AJ McLean,Justina Machado,AJ McLean,AJ McLean,True
+29,9,7,Rank_With_Save,AJ McLean,Justina Machado,AJ McLean,Justina Machado,True
 29,10,6,Rank_With_Save,Skai Jackson,Johnny Weir,Justina Machado,Johnny Weir,True
 29,11,4,Rank_With_Save,,Nelly,Nelly,Nelly,False
 30,1,15,Rank_With_Save,,Martin Kove,Martin Kove,Martin Kove,False
 30,2,15,Rank_With_Save,Martin Kove,Martin Kove,Martin Kove,Martin Kove,False
 30,3,14,Rank_With_Save,Christine Chiu,Cody Rigsby,Cody Rigsby,Cody Rigsby,False
-30,4,13,Rank_With_Save,Brian Austin Green,Brian Austin Green,Brian Austin Green,Brian Austin Green,False
-30,5,11,Rank_With_Save,Melanie C,Iman Shumpert,Iman Shumpert,Iman Shumpert,False
+30,4,13,Rank_With_Save,Brian Austin Green,Brian Austin Green,Brian Austin Green,Cody Rigsby,False
+30,5,11,Rank_With_Save,Melanie C,Iman Shumpert,Iman Shumpert,Cody Rigsby,False
 30,6,10,Rank_With_Save,Kenya Moore,Kenya Moore,Kenya Moore,Kenya Moore,False
 30,7,9,Rank_With_Save,"Mike ""The Miz"" Mizanin","Mike ""The Miz"" Mizanin","Mike ""The Miz"" Mizanin","Mike ""The Miz"" Mizanin",False
 30,8,8,Rank_With_Save,Jimmie Allen,Iman Shumpert,Iman Shumpert,Jimmie Allen,False
@@ -295,26 +295,26 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 30,10,4,Rank_With_Save,,Cody Rigsby,Cody Rigsby,Cody Rigsby,False
 31,1,16,Rank_With_Save,Jason Lewis,Jason Lewis,Jason Lewis,Jason Lewis,False
 31,2,15,Rank_With_Save,Teresa Giudice,Teresa Giudice,Teresa Giudice,Teresa Giudice,False
-31,3,14,Rank_With_Save,Cheryl Ladd,Cheryl Ladd,Cheryl Ladd,Cheryl Ladd,False
+31,3,14,Rank_With_Save,Cheryl Ladd,Cheryl Ladd,Cheryl Ladd,Sam Champion,False
 31,4,13,Rank_With_Save,Sam Champion,Sam Champion,Sam Champion,Sam Champion,False
-31,5,12,Rank_With_Save,Joseph Baena,Joseph Baena,Joseph Baena,Vinny Guadagnino,False
+31,5,12,Rank_With_Save,Joseph Baena,Joseph Baena,Joseph Baena,Joseph Baena,False
 31,6,10,Rank_With_Save,Jessie James Decker,Jessie James Decker,Jessie James Decker,Vinny Guadagnino,False
 31,7,9,Rank_With_Save,Jordin Sparks,Jordin Sparks,Jordin Sparks,Jordin Sparks,False
 31,8,8,Rank_With_Save,Heidi D'Amelio,Heidi D'Amelio,Heidi D'Amelio,Vinny Guadagnino,False
-31,9,6,Rank_With_Save,Trevor Donovan,Daniel Durant,Daniel Durant,Daniel Durant,False
+31,9,6,Rank_With_Save,Trevor Donovan,Daniel Durant,Daniel Durant,Gabby Windey,False
 31,10,4,Rank_With_Save,,Shangela,Shangela,Shangela,False
 32,1,14,Rank_With_Save,Matt Walsh,Matt Walsh,Matt Walsh,Matt Walsh,False
 32,2,13,Rank_With_Save,Jamie Lynn Spears,Jamie Lynn Spears,Jamie Lynn Spears,Harry Jowsey,False
 32,3,12,Rank_With_Save,Tyson Beckford,Tyson Beckford,Tyson Beckford,Tyson Beckford,False
 32,4,11,Rank_With_Save,Adrian Peterson,Alyson Hannigan,Adrian Peterson,Alyson Hannigan,True
-32,5,10,Rank_With_Save,Mira Sorvino,Mira Sorvino,Mira Sorvino,Harry Jowsey,False
-32,6,9,Rank_With_Save,Mauricio Umansky,Lele Pons,Mauricio Umansky,Mauricio Umansky,True
+32,5,10,Rank_With_Save,Mira Sorvino,Mira Sorvino,Mira Sorvino,Mira Sorvino,False
+32,6,9,Rank_With_Save,Mauricio Umansky,Lele Pons,Mauricio Umansky,Lele Pons,True
 32,7,8,Rank_With_Save,Lele Pons,Harry Jowsey,Harry Jowsey,Harry Jowsey,False
-32,8,7,Rank_With_Save,Barry Williams,Barry Williams,Barry Williams,Barry Williams,False
+32,8,7,Rank_With_Save,Barry Williams,Barry Williams,Barry Williams,Alyson Hannigan,False
 32,9,6,Rank_With_Save,Harry Jowsey,Harry Jowsey,Harry Jowsey,Harry Jowsey,False
-32,10,5,Rank_With_Save,,Alyson Hannigan,Alyson Hannigan,Alyson Hannigan,False
+32,10,5,Rank_With_Save,,Alyson Hannigan,Alyson Hannigan,Jason Mraz,False
 32,11,5,Rank_With_Save,,Alyson Hannigan,Alyson Hannigan,Alyson Hannigan,False
-33,1,13,Rank_With_Save,,Eric Roberts,Eric Roberts,Eric Roberts,False
+33,1,13,Rank_With_Save,,Eric Roberts,Eric Roberts,Reginald VelJohnson,False
 33,2,13,Rank_With_Save,Tori Spelling,Anna Delvey,Anna Delvey,Anna Delvey,False
 33,3,11,Rank_With_Save,Eric Roberts,Eric Roberts,Eric Roberts,Eric Roberts,False
 33,4,9,Rank_With_Save,Brooks Nader,Brooks Nader,Brooks Nader,Brooks Nader,False
@@ -326,11 +326,11 @@ season,week,n_contestants,rule_system,actual_loser,rank_loser,percent_loser,save
 34,1,14,Rank_With_Save,,Corey Feldman,Corey Feldman,Andy Richter,False
 34,2,14,Rank_With_Save,Corey Feldman,Baron Davis,Baron Davis,Baron Davis,False
 34,3,12,Rank_With_Save,Lauren Jauregui,Lauren Jauregui,Lauren Jauregui,Lauren Jauregui,False
-34,4,11,Rank_With_Save,Hilaria Baldwin,Andy Richter,Andy Richter,Andy Richter,False
-34,5,10,Rank_With_Save,,Andy Richter,Andy Richter,Andy Richter,False
+34,4,11,Rank_With_Save,Hilaria Baldwin,Andy Richter,Andy Richter,Scott Hoying,False
+34,5,10,Rank_With_Save,,Andy Richter,Andy Richter,Danielle Fishel,False
 34,6,10,Rank_With_Save,Scott Hoying,Scott Hoying,Scott Hoying,Scott Hoying,False
 34,7,9,Rank_With_Save,Jen Affleck,Danielle Fishel,Danielle Fishel,Jen Affleck,False
 34,8,8,Rank_With_Save,Danielle Fishel,Danielle Fishel,Danielle Fishel,Andy Richter,False
-34,9,7,Rank_With_Save,Andy Richter,Andy Richter,Andy Richter,Andy Richter,False
+34,9,7,Rank_With_Save,Andy Richter,Andy Richter,Andy Richter,Elaine Hendrix,False
 34,10,6,Rank_With_Save,Whitney Leavitt,Dylan Efron,Dylan Efron,Dylan Efron,False
 34,11,5,Rank_With_Save,,Elaine Hendrix,Elaine Hendrix,Elaine Hendrix,False

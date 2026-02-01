@@ -40,6 +40,10 @@ DIRICHLET_ALPHA = 0.8  # alpha < 1 simulates "Star Power" (Zipfian distribution)
 # Random seed for reproducibility
 RANDOM_SEED = 42
 
+# Judges' Save merit-based probability (from historical analysis)
+# judges save the higher judge scorer approx 77.5% of the time
+MERIT_SAVE_PROB = 0.775
+
 
 # =============================================================================
 # Core Simulation Functions
@@ -208,11 +212,19 @@ def apply_rank_with_save_rule(judge_ranks: np.ndarray, judge_scores: np.ndarray,
         # Get judge scores for bottom 2
         b2_judge_scores = judge_scores[b2_idx]
         
-        # The one with LOWER judge score is eliminated (other is saved)
-        if b2_judge_scores[0] < b2_judge_scores[1]:
-            eliminated_idx[sim] = b2_idx[0]
-        elif b2_judge_scores[1] < b2_judge_scores[0]:
-            eliminated_idx[sim] = b2_idx[1]
+        # Probabilistic judges' save: merit-based vs irrational
+        if b2_judge_scores[0] > b2_judge_scores[1]:
+            # 0 is higher scorer. 77.5% chance saved (1 eliminated), 22.5% chance 0 eliminated
+            if np.random.random() < MERIT_SAVE_PROB:
+                eliminated_idx[sim] = b2_idx[1]
+            else:
+                eliminated_idx[sim] = b2_idx[0]
+        elif b2_judge_scores[1] > b2_judge_scores[0]:
+            # 1 is higher scorer
+            if np.random.random() < MERIT_SAVE_PROB:
+                eliminated_idx[sim] = b2_idx[0]
+            else:
+                eliminated_idx[sim] = b2_idx[1]
         else:
             # Tie in judge scores - use fan rank as tie-breaker
             b2_fan_ranks = fan_ranks[sim, b2_idx]
@@ -273,17 +285,23 @@ def apply_rank_with_save_rule_vectorized(judge_ranks: np.ndarray, judge_scores: 
     judge_scores_first = judge_scores[bottom2_first]
     judge_scores_second = judge_scores[bottom2_second]
     
-    # Decision: Lower judge score gets eliminated
-    # If first has lower score, eliminate first; else eliminate second
+    # Probabilistic judges' save: 77.5% merit-based, 22.5% irrational
+    prob = np.random.random(n_sims)
+    
+    # Identify rational/irrational elimination indices
+    # Rational: lower score eliminated
+    rational_elim = np.where(judge_scores_first < judge_scores_second, bottom2_first, bottom2_second)
+    # Irrational: higher score eliminated
+    irrational_elim = np.where(judge_scores_first < judge_scores_second, bottom2_second, bottom2_first)
+    
+    # Tie-break (scores equal): deterministic fan-rank based (already sorted)
+    is_tie = (judge_scores_first == judge_scores_second)
+    
+    # Final result
     eliminated_idx = np.where(
-        judge_scores_first < judge_scores_second,
+        is_tie,
         bottom2_first,
-        np.where(
-            judge_scores_second < judge_scores_first,
-            bottom2_second,
-            # Tie in judge scores: use fan rank (already incorporated in noise)
-            bottom2_first  # The noisy sorting already broke ties by fan rank
-        )
+        np.where(prob < MERIT_SAVE_PROB, rational_elim, irrational_elim)
     )
     
     return eliminated_idx

@@ -23,6 +23,9 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
+# Judges' Save merit-based probability (from historical analysis)
+MERIT_SAVE_PROB = 0.775
+
 # =============================================================================
 # Configuration
 # =============================================================================
@@ -70,12 +73,21 @@ def apply_rank_save_rule(judge_scores: np.ndarray, fan_shares: np.ndarray,
     sorted_indices = np.argsort(-total_ranks)  # Descending by total rank
     bottom2_indices = sorted_indices[:2]
     
-    # Judges' Save: Higher judge score in Bottom 2 is saved
+    # Judges' Save: Probabilistic based on higher judge score
     b2_scores = judge_scores[bottom2_indices]
+    
     if b2_scores[0] > b2_scores[1]:
-        eliminated_idx = bottom2_indices[1]  # First one saved, second eliminated
+        # Person 0 is higher scorer
+        if np.random.random() < MERIT_SAVE_PROB:
+            eliminated_idx = bottom2_indices[1] # Save 0, eliminate 1
+        else:
+            eliminated_idx = bottom2_indices[0] # Irrational: save 1, eliminate 0
     elif b2_scores[1] > b2_scores[0]:
-        eliminated_idx = bottom2_indices[0]  # Second one saved, first eliminated
+        # Person 1 is higher scorer
+        if np.random.random() < MERIT_SAVE_PROB:
+            eliminated_idx = bottom2_indices[0]
+        else:
+            eliminated_idx = bottom2_indices[1]
     else:
         # Tie: use fan rank as tiebreaker (worse fan rank loses)
         b2_fan_ranks = fan_ranks[bottom2_indices]
@@ -311,17 +323,15 @@ def apply_save_rule(judge_score: float, fan_share: float,
     # In Bottom 2: compare judge scores
     other_idx = bottom2_indices[0] if bottom2_indices[1] == virtual_idx else bottom2_indices[1]
     
-    # Lower judge score in Bottom 2 is eliminated
+    # Probabilistic Judges' Save: 77.5% merit-based
+    # If virtual has lower score, usually eliminated (but 22.5% chance saved)
     if all_scores[virtual_idx] < all_scores[other_idx]:
-        return True  # Virtual eliminated
+        return np.random.random() < MERIT_SAVE_PROB  # Prob of ELIMINATION
     elif all_scores[virtual_idx] > all_scores[other_idx]:
-        return False  # Virtual saved
+        return np.random.random() > MERIT_SAVE_PROB  # Prob of ELIMINATION (irrational)
     else:
         # Tie: worse fan rank loses
-        if fan_ranks[virtual_idx] > fan_ranks[other_idx]:
-            return True
-        else:
-            return False
+        return fan_ranks[virtual_idx] > fan_ranks[other_idx]
 
 
 def compute_decision_boundary(df: pd.DataFrame, season: int = 28, week: int = 6,
@@ -379,9 +389,9 @@ def compute_decision_boundary(df: pd.DataFrame, season: int = 28, week: int = 6,
             # Normalize score to 0-1 range (like real data)
             norm_score = score / 30.0
             
-            Z_rank[j, i] = 1 if apply_rank_rule(norm_score, share, pool_scores, pool_shares) else 0
-            Z_percent[j, i] = 1 if apply_percent_rule(norm_score, share, pool_scores, pool_shares) else 0
-            Z_save[j, i] = 1 if apply_save_rule(norm_score, share, pool_scores, pool_shares) else 0
+            Z_rank[j, i] = 1 if not apply_rank_rule(norm_score, share, pool_scores, pool_shares) else 0
+            Z_percent[j, i] = 1 if not apply_percent_rule(norm_score, share, pool_scores, pool_shares) else 0
+            Z_save[j, i] = 1 if not apply_save_rule(norm_score, share, pool_scores, pool_shares) else 0
     
     print(f"  Grid computed: {resolution**2} points")
     
@@ -403,10 +413,10 @@ def plot_decision_boundary(results, save_path: Path):
     ]
     
     # Custom colormap: Green (safe) -> Red (eliminated)
-    cmap = ListedColormap(['#2ecc71', '#e74c3c'])
+    cmap = ListedColormap(['#e74c3c', '#2ecc71'])
     
     for ax, (title, Z, color) in zip(axes, systems):
-        # Contour plot
+        # Contour plot: Hard boundaries but with Monte Carlo "fuzziness"
         contour = ax.contourf(X, Y * 100, Z, levels=[-0.5, 0.5, 1.5], 
                               cmap=cmap, alpha=0.6)
         
@@ -451,8 +461,8 @@ def plot_decision_boundary(results, save_path: Path):
         ax.grid(True, alpha=0.3, linewidth=0.5)
         
         # Calculate safe zone percentage
-        safe_pct = (1 - Z.mean()) * 100
-        ax.text(0.95, 0.05, f'Safe Zone: {safe_pct:.1f}%', 
+        safe_pct = Z.mean() * 100
+        ax.text(0.95, 0.05, f'Safe Area: {safe_pct:.1f}%', 
                 transform=ax.transAxes, fontsize=10, ha='right',
                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
     

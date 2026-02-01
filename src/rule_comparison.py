@@ -24,6 +24,7 @@ from scipy.stats import spearmanr
 from pathlib import Path
 import warnings
 from typing import Tuple, Dict, List, Optional
+import random
 
 warnings.filterwarnings('ignore')
 
@@ -229,11 +230,25 @@ def simulate_week_rank_save(df_week: pd.DataFrame) -> Tuple[str, Dict]:
     judge_scores = bottom2['normalized_score'].values
     fan_ranks_b2 = bottom2['fan_rank'].values
     
+    # [OPTIMIZATION] Probabilistic Judges' Save Analysis (S28-S34)
+    # Analysis shows judges save the higher scorer ~77.5% of the time (excluding ties).
+    MERIT_SAVE_PROB = 0.775
+
     if judge_scores[0] > judge_scores[1]:
-        # Contestant 0 has higher judge score -> saved, contestant 1 eliminated
-        loser_idx_in_b2 = 1
+        # Contestant 0 has higher judge score
+        # 77.5% chance to save 0 (Rational), 22.5% chance to save 1 (Irrational)
+        if random.random() < MERIT_SAVE_PROB:
+            loser_idx_in_b2 = 1 # Save 0, eliminate 1
+        else:
+            loser_idx_in_b2 = 0 # Save 1, eliminate 0
+            
     elif judge_scores[1] > judge_scores[0]:
-        loser_idx_in_b2 = 0
+        # Contestant 1 has higher judge score
+        if random.random() < MERIT_SAVE_PROB:
+            loser_idx_in_b2 = 0 # Save 1, eliminate 0
+        else:
+            loser_idx_in_b2 = 1 # Save 0, eliminate 1
+            
     else:
         # Judge scores equal, compare fan ranks
         if fan_ranks_b2[0] > fan_ranks_b2[1]:
@@ -967,6 +982,10 @@ def main():
     print("MCM 2026 Problem C - Rule Comparison (Multiverse Simulator)")
     print("="*70)
     
+    # Set random seed for reproducibility
+    random.seed(2026)
+    np.random.seed(2026)
+
     # Step 1: Load and merge data
     df = load_and_merge_data()
     
