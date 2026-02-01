@@ -12,9 +12,19 @@
 - **Jenna Johnson**: +0.176 log-share boost
 
 ## 2. Demographic Biases
-### Age Effect:
+### Age Effect (Linear View):
 - **Skill**: -0.0581 (per SD of age)
 - **Popularity**: -0.2683 (per SD of age)
+
+### Age Non-linearity Analysis:
+#### Skill Linearity Test:
+- Linear AIC: nan | Quadratic AIC: nan
+- Quadratic term p-value: 0.0752
+- **Conclusion**: Linear effect is more appropriate.
+#### Popularity Linearity Test:
+- Linear AIC: nan | Quadratic AIC: nan
+- Quadratic term p-value: 0.6872
+- **Conclusion**: Linear effect is more appropriate.
 
 ### Industry Effect (vs Actor):
 - **Skill (C(industry_group)[T.Athlete])**: -0.029

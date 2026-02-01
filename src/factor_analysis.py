@@ -178,6 +178,60 @@ def run_dual_track_models(df: pd.DataFrame):
     return res_skill, res_pop
 
 
+def compare_age_linearity(df: pd.DataFrame):
+    """
+    Compare Linear vs Quadratic models for Age effect using AIC/BIC.
+    """
+    print("\n" + "="*50)
+    print("ANALYZING AGE LINEARITY (Linear vs Quadratic)")
+    print("="*50)
+    
+    results = []
+    
+    for target, name in [('normalized_score', 'Skill'), ('log_rfs', 'Popularity')]:
+        # 1. Linear Model
+        formula_lin = f"{target} ~ age_std + C(industry_group)"
+        model_lin = smf.mixedlm(formula_lin, df, groups=df["ballroom_partner"])
+        res_lin = model_lin.fit()
+        
+        # 2. Quadratic Model (Quadratic term: I(age_std**2))
+        formula_quad = f"{target} ~ age_std + np.power(age_std, 2) + C(industry_group)"
+        model_quad = smf.mixedlm(formula_quad, df, groups=df["ballroom_partner"])
+        res_quad = model_quad.fit()
+        
+        # Capture metrics
+        aic_lin, bic_lin = res_lin.aic, res_lin.bic
+        aic_quad, bic_quad = res_quad.aic, res_quad.bic
+        
+        # P-value for quadratic term
+        p_quad = res_quad.pvalues.get('np.power(age_std, 2)', 1.0)
+        
+        results.append({
+            'Target': name,
+            'Model': 'Linear',
+            'AIC': aic_lin,
+            'BIC': bic_lin,
+            'P_Quad': None
+        })
+        results.append({
+            'Target': name,
+            'Model': 'Quadratic',
+            'AIC': aic_quad,
+            'BIC': bic_quad,
+            'P_Quad': p_quad
+        })
+        
+        print(f"\n[{name}] Comparison:")
+        print(f"  Linear    -> AIC: {aic_lin:.2f}, BIC: {bic_lin:.2f}")
+        print(f"  Quadratic -> AIC: {aic_quad:.2f}, BIC: {bic_quad:.2f}")
+        print(f"  Quadratic term P-value: {p_quad:.4f}")
+        
+    df_comp = pd.DataFrame(results)
+    df_comp.to_csv(OUTPUT_DATA_DIR / "age_linearity_comparison.csv", index=False)
+    
+    return df_comp
+
+
 # =============================================================================
 # Analysis & Visualizations
 # =============================================================================
@@ -303,39 +357,52 @@ def visualize_industry_radar(res_skill, res_pop):
 def visualize_age_trends(df):
     """
     Visualize Age effect on Normalized Score vs Fan Share.
+    Show both Linear and Quadratic fits.
     """
-    plt.figure(figsize=(10, 6))
-    
-    # Bin ages for smoother plotting
-    df['age_bin'] = pd.cut(df['age'], bins=range(15, 80, 5))
-    
-    # Group by age bin
-    age_stats = df.groupby('age_bin')[['normalized_score', 'relative_fan_share']].mean().reset_index()
-    age_stats['age_mid'] = age_stats['age_bin'].apply(lambda x: x.mid)
-    
     # Double Y-axis plot
-    fig, ax1 = plt.subplots(figsize=(10, 6))
+    fig, ax1 = plt.subplots(figsize=(12, 7))
+    sns.set_style("whitegrid")
     
-    color = 'tab:blue'
-    ax1.set_xlabel('Age')
-    ax1.set_ylabel('Judge Score (Normalized)', color=color)
-    sns.regplot(data=df, x='age', y='normalized_score', ax=ax1, scatter=False, color=color, label='Techincal Trend')
-    ax1.tick_params(axis='y', labelcolor=color)
+    # 1. Technical Score (Left Axis)
+    color1 = '#3498db' # Blue
+    ax1.set_xlabel('Celebrity Age', fontsize=12)
+    ax1.set_ylabel('Judge Score (Normalized)', color=color1, fontsize=12)
     
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    # Linear Fit for Skill
+    sns.regplot(data=df, x='age', y='normalized_score', ax=ax1, 
+                scatter=False, color=color1, line_kws={'linestyle': '--', 'alpha': 0.5}, label='Skill (Linear)')
+    # Quadratic Fit for Skill
+    sns.regplot(data=df, x='age', y='normalized_score', ax=ax1, 
+                order=2, scatter_kws={'alpha': 0.1, 's': 10}, color=color1, label='Skill (Quadratic)')
     
-    color = 'tab:red'
-    ax2.set_ylabel('Relative Fan Share (1.0 = Avg)', color=color)
-    # Use log trend or simple linear for fans
-    sns.regplot(data=df, x='age', y='relative_fan_share', ax=ax2, scatter=False, color=color, label='Popularity Trend')
-    ax2.tick_params(axis='y', labelcolor=color)
+    ax1.tick_params(axis='y', labelcolor=color1)
     
-    plt.title('Age Paradox: Do Fans Respect Elders More Than Judges?', fontweight='bold')
+    # 2. Popularity (Right Axis)
+    ax2 = ax1.twinx()
+    color2 = '#e74c3c' # Red
+    ax2.set_ylabel('Relative Fan Share', color=color2, fontsize=12)
+    
+    # Linear Fit for Pop
+    sns.regplot(data=df, x='age', y='relative_fan_share', ax=ax2, 
+                scatter=False, color=color2, line_kws={'linestyle': '--', 'alpha': 0.5}, label='Pop (Linear)')
+    # Quadratic Fit for Pop
+    sns.regplot(data=df, x='age', y='relative_fan_share', ax=ax2, 
+                order=2, scatter=False, color=color2, label='Pop (Quadratic)')
+    
+    ax2.tick_params(axis='y', labelcolor=color2)
+    
+    # Combine legends
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper right')
+    
+    plt.title('Age Paradox: Linear vs. Quadratic Trends (Judge vs. Fans)', fontsize=14, fontweight='bold')
     fig.tight_layout()
-    plt.savefig(OUTPUT_DIR / "q3_age_trends.png", dpi=300)
+    plt.savefig(OUTPUT_DIR / "q3_age_trends_comparison.png", dpi=300)
+    print(f"[INFO] Age trend comparison saved to {OUTPUT_DIR / 'q3_age_trends_comparison.png'}")
 
 
-def generate_memo_summary(res_skill, res_pop, df_effects):
+def generate_memo_summary(res_skill, res_pop, df_effects, df_comp):
     """
     Generate a text summary for the Memo.
     """
@@ -357,10 +424,24 @@ def generate_memo_summary(res_skill, res_pop, df_effects):
             f.write(f"- **{row['Partner']}**: +{row['Popularity_Boost']:.3f} log-share boost\n")
             
         f.write("\n## 2. Demographic Biases\n")
-        f.write("### Age Effect:\n")
+        f.write("### Age Effect (Linear View):\n")
         f.write(f"- **Skill**: {res_skill.params['age_std']:.4f} (per SD of age)\n")
         f.write(f"- **Popularity**: {res_pop.params['age_std']:.4f} (per SD of age)\n")
         
+        f.write("\n### Age Non-linearity Analysis:\n")
+        for target in ['Skill', 'Popularity']:
+            comp = df_comp[df_comp['Target'] == target]
+            lin = comp[comp['Model'] == 'Linear'].iloc[0]
+            quad = comp[comp['Model'] == 'Quadratic'].iloc[0]
+            
+            p_val = quad['P_Quad']
+            is_better = quad['AIC'] < lin['AIC']
+            
+            f.write(f"#### {target} Linearity Test:\n")
+            f.write(f"- Linear AIC: {lin['AIC']:.2f} | Quadratic AIC: {quad['AIC']:.2f}\n")
+            f.write(f"- Quadratic term p-value: {p_val:.4f}\n")
+            f.write(f"- **Conclusion**: {'Quadratic' if (is_better and p_val < 0.05) else 'Linear'} effect is more appropriate.\n")
+
         f.write("\n### Industry Effect (vs Actor):\n")
         # List significant industry coefficients
         sk_p = res_skill.pvalues
@@ -385,16 +466,19 @@ def main():
     # 2. Preprocess
     df_clean = clean_features(df)
     
-    # 3. Run Models
+    # 3. Linearity Analysis (NEW)
+    df_comp = compare_age_linearity(df_clean)
+    
+    # 4. Run Models
     res_skill, res_pop = run_dual_track_models(df_clean)
     
-    # 4. Visualize
+    # 5. Visualize
     df_effects = visualize_partner_effects(res_skill, res_pop, df_clean)
     visualize_industry_radar(res_skill, res_pop)
     visualize_age_trends(df_clean)
     
-    # 5. Report
-    generate_memo_summary(res_skill, res_pop, df_effects)
+    # 6. Report
+    generate_memo_summary(res_skill, res_pop, df_effects, df_comp)
     
     print("[SUCCESS] Task 3 Analysis Complete.")
 
