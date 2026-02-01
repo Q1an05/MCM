@@ -27,12 +27,12 @@ warnings.filterwarnings('ignore')
 # =============================================================================
 BASE_DIR = Path(__file__).parent.parent
 RESULTS_DIR = BASE_DIR / "results"
-PLOTS_DIR = RESULTS_DIR / "plots"
+PLOTS_DIR = RESULTS_DIR / "plots" / "question1"
 PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 
-BASIC_RESULTS_PATH = RESULTS_DIR / "full_simulation_basic.csv"
-BAYESIAN_RESULTS_PATH = RESULTS_DIR / "full_simulation_bayesian.csv"
-REPORT_PATH = RESULTS_DIR / "model_comparison_report.md"
+BASIC_RESULTS_PATH = RESULTS_DIR / "question1" / "full_simulation_basic.csv"
+BAYESIAN_RESULTS_PATH = RESULTS_DIR / "question1" / "full_simulation_bayesian.csv"
+REPORT_PATH = RESULTS_DIR / "question1" / "model_comparison_report.md"
 
 # Plot style
 plt.style.use('seaborn-v0_8-whitegrid')
