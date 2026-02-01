@@ -276,11 +276,13 @@ For each celebrity, we generated:
 The fundamental difference lies in how the two systems aggregate scores:
 
 **Rank System (Linear)**:
+
 - Total Score = Judge Rank + Fan Rank
 - Example: If Fan Rank improves from 2nd to 1st (Δ = 1), Total Score changes by exactly 1 point
 - **Linear relationship**: Equal weight across all rank positions
 
 **Percent System (Preserves Extremes)**:
+
 - Total Share = Judge Share % + Fan Share %
 - Example: Bobby Bones with extreme fan base (long-tail effect)
   - Rank System: 1st and 2nd place differ by only 1 rank (minimal gap)
@@ -288,6 +290,7 @@ The fundamental difference lies in how the two systems aggregate scores:
 - **Preserves magnitude**: When fan 1st place has 10× more votes than 2nd place, this 10× advantage directly translates into share percentage, overwhelming judge scores
 
 **Concrete Bristol Palin Example**:
+
 - Under Rank: Her polarizing fan base gets compressed to "Rank 1" or "Rank 2" (linear scale)
 - Under Percent: Her dedicated 30% fan share directly adds to total, creating massive buffer against low judge scores (15%)
 - **Result**: 5-week survival difference (W10 vs W5)
