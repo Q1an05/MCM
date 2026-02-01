@@ -86,8 +86,10 @@ MIN_ALPHA = 0.1
 SKILL_IMPACT_FACTOR = 0.3  # 增加实力权重
 
 # 混合模型参数 (Mixture Model)
-# 允许一定比例的样本来自"混乱分布" (Uniform)，涵盖非理性投票/长尾事件。
-CHAOS_FACTOR = 0.05  # 5% 的可能性是完全随机投票 (The "Chaos" Component)
+# 允许一定比例的样本来自"混乱分布"，涵盖非理性投票/长尾事件。
+# 优化结果 (via diagnostics.py): Exponential Distribution, Lambda=0.024
+CHAOS_FACTOR = 0.024  # 2.4% 的可能性是混沌投票 (The "Chaos" Component)
+CHAOS_DISTRIBUTION = 'exponential'  # 'uniform', 'pareto', or 'exponential'
 
 
 # =============================================================================
@@ -199,7 +201,12 @@ def generate_fan_shares(alpha: np.ndarray, n_sims: int = N_SIMULATIONS) -> np.nd
     """
     Generate fan share samples using a Mixture Model.
     
-    Model: (1 - lambda) * Dirichlet(alpha_skill) + lambda * Dirichlet(alpha_uniform)
+    Model: (1 - lambda) * Dirichlet(alpha_skill) + lambda * Dirichlet(alpha_chaos)
+    
+    Chaos distribution determined by CHAOS_DISTRIBUTION:
+    - 'uniform': Equal probability for all contestants
+    - 'pareto': Power-law (few contestants get most chaos votes)
+    - 'exponential': Medium tail (optimized via diagnostics.py)
     """
     n_chaos = int(n_sims * CHAOS_FACTOR)
     n_skill = n_sims - n_chaos
@@ -207,9 +214,24 @@ def generate_fan_shares(alpha: np.ndarray, n_sims: int = N_SIMULATIONS) -> np.nd
     # 1. Rational/Skill Component (History + Judge Scores)
     samples_skill = np.random.dirichlet(alpha, size=n_skill)
     
-    # 2. Chaos/Irrational Component (Uniform/Random)
-    # Represents viral moments, protest votes, or complete noise.
-    alpha_chaos = np.ones_like(alpha) # Uniform prior
+    if n_chaos == 0:
+        return samples_skill
+    
+    # 2. Chaos/Irrational Component - varies by distribution type
+    if CHAOS_DISTRIBUTION == 'pareto':
+        # Pareto: Power-law distribution (long tail)
+        pareto_weights = np.random.pareto(1.5, size=len(alpha))
+        pareto_weights = pareto_weights / pareto_weights.sum()
+        alpha_chaos = pareto_weights
+    elif CHAOS_DISTRIBUTION == 'exponential':
+        # Exponential: Medium tail (OPTIMIZED)
+        exp_weights = np.random.exponential(1.0, size=len(alpha))
+        exp_weights = exp_weights / exp_weights.sum()
+        alpha_chaos = exp_weights
+    else:  # 'uniform' (default)
+        # Uniform: Equal probability
+        alpha_chaos = np.ones_like(alpha)
+    
     samples_chaos = np.random.dirichlet(alpha_chaos, size=n_chaos)
     
     # Combine
@@ -526,6 +548,7 @@ def main():
     print(f"   eta (LEARNING_RATE)           = {LEARNING_RATE}")
     print(f"   skill_impact (lambda)         = {SKILL_IMPACT_FACTOR}")
     print(f"   chaos_factor (mixture)        = {CHAOS_FACTOR}")
+    print(f"   chaos_distribution            = {CHAOS_DISTRIBUTION}")
     print(f"   N_SIMULATIONS                 = {N_SIMULATIONS}")
     
     # Load data
