@@ -16,41 +16,42 @@ import numpy as np
 
 # =============================================================================
 # 学术风格配色方案 (Academic Color Palette)
-# 提高饱和度以增强辨识度，符合科研标准
+# Nature Science Cell 风格顶刊配色
 # =============================================================================
 
 # 主色板 - 8色学术配色 (适用于分类数据)
 MORANDI_COLORS = [
-    '#8B7355',  # 深咖啡棕 - Deep Coffee
-    '#5B9BD5',  # 学术蓝 - Academic Blue
-    '#ED7D31',  # 橙红 - Coral Orange
-    '#70AD47',  # 绿色 - Forest Green
-    '#A5A5A5',  # 中性灰 - Neutral Gray
-    '#4472C4',  # 宝石蓝 - Sapphire Blue
-    '#C55A11',  # 深橙 - Deep Orange
-    '#548235',  # 深绿 - Deep Green
+    '#B7D5EC',  # 天空蓝 - Sky Blue (Primary)
+    '#F1C3C1',  # 樱花粉 - Cherry Blossom Pink (Secondary)
+    '#B9C3DC',  # 薰衣草紫 - Lavender (Tertiary)
+    '#FEDFB1',  # 杏仁黄 - Almond (Quaternary)
+    '#EEB3C1',  # 玫瑰粉 - Rose Pink
+    '#D5D7D6',  # 指示灰 - Indicator Gray
+    '#A8D8B9',  # 薄荷绿 - Mint Green (补充)
+    '#F4A582',  # 珊瑚橘 - Coral Orange (补充)
 ]
 
-# 强调色 (用于突出重要数据)
+# 强调色 (用于突出重要数据 - 保持高对比度但色调协调)
 MORANDI_ACCENT = [
-    '#C00000',  # 深红 - Deep Red
-    '#0070C0',  # 钴蓝 - Cobalt Blue
-    '#00B050',  # 鲜绿 - Bright Green
-    '#7030A0',  # 紫色 - Purple
+    '#E7298A',  # 强力粉 - Strong Pink
+    '#3182BD',  # 强力蓝 - Strong Blue
+    '#1B9E77',  # 强力绿 - Strong Green
+    '#D95F02',  # 强力橘 - Strong Orange
 ]
 
 # 连续渐变色板 (用于热图、梯度等)
-MORANDI_GRADIENT_COOL = ['#F2F2F2', '#DEEBF7', '#9ECAE1', '#4292C6', '#08519C']  # 冷色调
-MORANDI_GRADIENT_WARM = ['#FFF5EB', '#FDD0A2', '#FD8D3C', '#E6550D', '#A63603']  # 暖色调
-MORANDI_GRADIENT_NEUTRAL = ['#F7F7F7', '#CCCCCC', '#969696', '#636363', '#252525']  # 中性色调
+MORANDI_GRADIENT_COOL = ['#F7FBFF', '#D6EAF8', '#B7D5EC', '#85C1E9', '#3182BD']  # 冷色调 (Based on Sky Blue)
+MORANDI_GRADIENT_WARM = ['#FFF5F0', '#FDE0DD', '#F1C3C1', '#F768A1', '#E7298A']  # 暖色调 (Based on Pink)
+MORANDI_GRADIENT_NEUTRAL = ['#F7F7F7', '#E5E5E5', '#D5D7D6', '#999999', '#525252']  # 中性色调 (Based on Gray)
 
 # 分歧色板 (用于对比数据，如正负值)
-MORANDI_DIVERGING = ['#0070C0', '#9ECAE1', '#F7F7F7', '#FD8D3C', '#C00000']
+# Blue (Negative/Low) <-> Pink/Red (Positive/High)
+MORANDI_DIVERGING = ['#3182BD', '#B7D5EC', '#F7F7F7', '#F1C3C1', '#E7298A']
 
 # 序列色板 (单色渐变)
-MORANDI_SEQ_BLUE = ['#F7FBFF', '#DEEBF7', '#9ECAE1', '#4292C6', '#08519C']
-MORANDI_SEQ_GREEN = ['#F7FCF5', '#C7E9C0', '#74C476', '#31A354', '#006D2C']
-MORANDI_SEQ_PINK = ['#FFF5F0', '#FCBBA1', '#FC9272', '#EF3B2C', '#A50F15']
+MORANDI_SEQ_BLUE = ['#F7FBFF', '#D6EAF8', '#B7D5EC', '#5DADE2', '#3182BD']
+MORANDI_SEQ_GREEN = ['#F7FCF5', '#E5F5E0', '#A8D8B9', '#74C476', '#1B9E77']
+MORANDI_SEQ_PINK = ['#FFF5F0', '#FDE0DD', '#F1C3C1', '#FA9FB5', '#E7298A']
 
 # =============================================================================
 # Matplotlib配置
@@ -275,9 +276,9 @@ ERA_COLORS = {
 
 # 对比色映射 (用于对立关系)
 CONTRAST_COLORS = {
-    'positive': MORANDI_ACCENT[2],   # 薄荷绿
-    'negative': MORANDI_ACCENT[0],   # 玫瑰棕
-    'neutral': MORANDI_COLORS[6]     # 暖沙色
+    'positive': MORANDI_ACCENT[2],   # 强力绿
+    'negative': MORANDI_ACCENT[0],   # 强力粉
+    'neutral': MORANDI_COLORS[5]     # 指示灰 (Updated from index 6 to 5)
 }
 
 # =============================================================================

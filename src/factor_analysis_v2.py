@@ -469,8 +469,9 @@ def visualize_growth_trajectories(df: pd.DataFrame, df_growth: pd.DataFrame):
     """Visualize growth trajectories by cluster."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
-    colors = {'Athletic Elite': '#3498db', 'Performance Artist': '#e74c3c', 
-              'Fan Favorite': '#2ecc71', 'Underdog': '#95a5a6'}
+    # Use Morandi Colors for clusters
+    unique_clusters = sorted(df['industry_cluster'].unique())
+    colors = {cluster: get_color(i) for i, cluster in enumerate(unique_clusters)}
     
     # Plot 1: Average score trajectory by cluster
     ax1 = axes[0]
@@ -634,7 +635,7 @@ def visualize_age_effects(df: pd.DataFrame, linearity_results: dict):
     # Plot 1: Age vs Judge Score
     ax1 = axes[0]
     ax1.scatter(age_skill['age'], age_skill['mean'], s=age_skill['count']*3, 
-                alpha=0.6, c='steelblue', edgecolors='navy')
+                alpha=0.6, c=MORANDI_COLORS[0], edgecolors='white', linewidth=0.5)
     
     # Fit lines
     if len(age_skill) > 2:
@@ -642,8 +643,10 @@ def visualize_age_effects(df: pd.DataFrame, linearity_results: dict):
         z_quad = np.polyfit(age_skill['age'], age_skill['mean'], 2)
         x_line = np.linspace(age_skill['age'].min(), age_skill['age'].max(), 100)
         
-        ax1.plot(x_line, np.polyval(z_linear, x_line), 'b-', linewidth=2, label='Linear Fit')
-        ax1.plot(x_line, np.polyval(z_quad, x_line), 'r--', linewidth=2, label='Quadratic Fit')
+        ax1.plot(x_line, np.polyval(z_linear, x_line), color=MORANDI_COLORS[0], 
+                linestyle='-', linewidth=2.5, label='Linear Fit')
+        ax1.plot(x_line, np.polyval(z_quad, x_line), color=MORANDI_ACCENT[1], 
+                linestyle='--', linewidth=2, label='Quadratic Fit')
     
     ax1.set_xlabel('Age', fontsize=12)
     ax1.set_ylabel('Mean Normalized Score', fontsize=12)
@@ -655,15 +658,17 @@ def visualize_age_effects(df: pd.DataFrame, linearity_results: dict):
     # Plot 2: Age vs Fan Share
     ax2 = axes[1]
     ax2.scatter(age_pop['age'], age_pop['mean'], s=age_pop['count']*3, 
-                alpha=0.6, c='coral', edgecolors='darkred')
+                alpha=0.6, c=MORANDI_COLORS[1], edgecolors='white', linewidth=0.5)
     
     if len(age_pop) > 2:
         z_linear = np.polyfit(age_pop['age'], age_pop['mean'], 1)
         z_quad = np.polyfit(age_pop['age'], age_pop['mean'], 2)
         x_line = np.linspace(age_pop['age'].min(), age_pop['age'].max(), 100)
         
-        ax2.plot(x_line, np.polyval(z_linear, x_line), 'b-', linewidth=2, label='Linear Fit')
-        ax2.plot(x_line, np.polyval(z_quad, x_line), 'r--', linewidth=2, label='Quadratic Fit')
+        ax2.plot(x_line, np.polyval(z_linear, x_line), color=MORANDI_COLORS[1], 
+                linestyle='-', linewidth=2.5, label='Linear Fit')
+        ax2.plot(x_line, np.polyval(z_quad, x_line), color=MORANDI_ACCENT[0], 
+                linestyle='--', linewidth=2, label='Quadratic Fit')
     
     ax2.set_xlabel('Age', fontsize=12)
     ax2.set_ylabel('Mean Log(Relative Fan Share)', fontsize=12)
@@ -840,15 +845,14 @@ def analyze_blind_voting_effect(df: pd.DataFrame) -> dict:
 def visualize_blind_voting_effect(df: pd.DataFrame, results: dict):
     """
     Visualize the blind voting effect: Score vs Fan Vote by Era.
-    
-    Creates a scatter plot with two regression lines showing how
-    the relationship between judge scores and fan votes differs
-    between blind and non-blind voting eras.
     """
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
-    # Colors
-    colors = {'Blind Era (S28-S30)': '#e74c3c', 'Non-Blind Era': '#3498db'}
+    # Use Nature style colors
+    colors = {
+        'Blind Era (S28-S30)': MORANDI_COLORS[1],    # Pinkish
+        'Non-Blind Era': MORANDI_COLORS[0]           # Bluish
+    }
     
     # ===== Plot 1: Score vs Fan Vote =====
     ax1 = axes[0]
@@ -1077,13 +1081,15 @@ def visualize_forest_plot(res_skill, res_pop):
     pop_norm = (np.array(pop_vals) - np.mean(pop_vals)) / (np.std(pop_vals) + 0.001)
     
     # Plot
-    ax.scatter(skill_norm, y_positions - 0.15, c='#3498db', s=150, label='Judge Model', marker='s', zorder=3)
-    ax.scatter(pop_norm, y_positions + 0.15, c='#e74c3c', s=150, label='Fan Model', marker='o', zorder=3)
+    ax.scatter(skill_norm, y_positions - 0.15, c=MORANDI_COLORS[0], s=150, 
+               label='Judge Model', marker='s', zorder=3, edgecolors='white', linewidth=0.8)
+    ax.scatter(pop_norm, y_positions + 0.15, c=MORANDI_COLORS[1], s=150, 
+               label='Fan Model', marker='o', zorder=3, edgecolors='white', linewidth=0.8)
     
     # Connect pairs
     for i in range(len(common_vars)):
         ax.plot([skill_norm[i], pop_norm[i]], [y_positions[i]-0.15, y_positions[i]+0.15], 
-                'gray', alpha=0.5, linewidth=1)
+                'gray', alpha=0.3, linewidth=1, linestyle=':')
     
     ax.axvline(0, color='black', linestyle='--', alpha=0.5)
     ax.set_yticks(y_positions)
@@ -1126,16 +1132,16 @@ def visualize_partner_effects(res_skill, res_pop, df):
     # Scatter plot
     scatter = ax.scatter(df_effects['Skill_Boost'], df_effects['Popularity_Boost'],
                         s=df_effects['Count']*30, alpha=0.7, c=df_effects['Skill_Boost'],
-                        cmap='viridis', edgecolors='white', linewidth=1)
+                        cmap='morandi_cool', edgecolors='white', linewidth=1)
     
     # Label outliers
     for _, row in df_effects.iterrows():
         if abs(row['Skill_Boost']) > 0.03 or abs(row['Popularity_Boost']) > 0.15:
             ax.annotate(row['Partner'], (row['Skill_Boost'], row['Popularity_Boost']),
-                       fontsize=9, alpha=0.8)
+                       fontsize=9, alpha=0.9, fontweight='bold', color='#333333')
     
-    ax.axhline(0, color='gray', linestyle='--', alpha=0.5)
-    ax.axvline(0, color='gray', linestyle='--', alpha=0.5)
+    ax.axhline(0, color='gray', linestyle='--', alpha=0.3)
+    ax.axvline(0, color='gray', linestyle='--', alpha=0.3)
     
     ax.set_xlabel('Technical Boost (Judge Score Effect)', fontsize=12)
     ax.set_ylabel('Popularity Boost (Log Fan Share Effect)', fontsize=12)
@@ -1143,8 +1149,8 @@ def visualize_partner_effects(res_skill, res_pop, df):
     
     # Quadrant labels
     xlim, ylim = ax.get_xlim(), ax.get_ylim()
-    ax.text(xlim[1]*0.7, ylim[1]*0.8, 'KINGMAKERS\n(High Both)', ha='center', color='green', fontweight='bold')
-    ax.text(xlim[0]*0.7, ylim[1]*0.8, 'CULT FAVORITES\n(Low Skill, High Fans)', ha='center', color='orange', fontweight='bold')
+    ax.text(xlim[1]*0.7, ylim[1]*0.8, 'KINGMAKERS\n(High Both)', ha='center', color=MORANDI_ACCENT[2], fontweight='bold')
+    ax.text(xlim[0]*0.7, ylim[1]*0.8, 'CULT FAVORITES\n(Low Skill, High Fans)', ha='center', color=MORANDI_ACCENT[3], fontweight='bold')
     
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / 'q3_partner_effects_v2.png', dpi=300)
