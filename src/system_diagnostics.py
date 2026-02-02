@@ -192,11 +192,14 @@ def plot_stress_test(results, save_path: Path):
     
     fig, ax = plt.subplots(figsize=(14, 8))
     
-    # Main survival curves
-    ax.plot(entropy_vals, med_surv, 'r-', linewidth=3, marker='o', markersize=4,
-            label=f'{med_name} Survival (Mediocrity Risk)')
-    ax.plot(entropy_vals, tal_surv, 'b-', linewidth=3, marker='s', markersize=4,
+    # Main survival curves using Morandi colors
+    # Talent (Protection) - Blue
+    ax.plot(entropy_vals, tal_surv, color=MORANDI_ACCENT[1], linewidth=3, marker='s', markersize=6,
             label=f'{tal_name} Survival (Talent Protection)')
+    
+    # Mediocrity (Risk) - Pink (#F1C3C1)
+    ax.plot(entropy_vals, med_surv, color=MORANDI_COLORS[1], linewidth=3, marker='o', markersize=6,
+            label=f'{med_name} Survival (Mediocrity Risk)')
     
     # Identify robustness zone (talent safe >90%, mediocrity <40%)
     robust_mask = (tal_surv > 0.90) & (med_surv < 0.40)
@@ -205,18 +208,19 @@ def plot_stress_test(results, save_path: Path):
         robust_indices = np.where(robust_mask)[0]
         robust_start = entropy_vals[robust_indices[0]]
         robust_end = entropy_vals[robust_indices[-1]]
-        ax.axvspan(robust_start, robust_end, alpha=0.2, color='green', 
+        # Using Mint Green from config
+        ax.axvspan(robust_start, robust_end, alpha=0.3, color=MORANDI_COLORS[6], 
                    label=f'Robustness Zone (H ∈ [{robust_start:.2f}, {robust_end:.2f}])')
     
-    # Critical threshold line
-    ax.axhline(y=0.5, linestyle='--', color='gray', alpha=0.7, linewidth=1.5)
-    ax.text(entropy_vals[-1] * 0.95, 0.52, '50% Threshold', fontsize=10, ha='right', color='gray')
+    # Critical threshold line - Gray
+    ax.axhline(y=0.5, linestyle='--', color=MORANDI_COLORS[5], alpha=0.7, linewidth=1.5)
+    ax.text(entropy_vals[-1] * 0.95, 0.52, '50% Threshold', fontsize=10, ha='right', color=MORANDI_COLORS[5])
     
-    # Real-world entropy annotation
-    real_entropy = entropy_vals[0]  # Lambda = 0 is the real data
-    ax.axvline(x=real_entropy, linestyle=':', color='purple', alpha=0.7, linewidth=2)
-    ax.text(real_entropy + 0.02, 0.1, f'Real Data\nH={real_entropy:.2f}', 
-            fontsize=10, color='purple', va='bottom')
+    # Real-world entropy annotation - Muted Lavender
+    real_entropy = entropy_vals[0]
+    ax.axvline(x=real_entropy, linestyle=':', color=MORANDI_COLORS[2], alpha=0.8, linewidth=2)
+    ax.text(real_entropy + 0.01, 0.1, f'Real Data\nH={real_entropy:.2f}', 
+            fontsize=10, color=MORANDI_COLORS[2], va='bottom', fontweight='bold')
     
     # Labels and formatting
     ax.set_xlabel('Vote Distribution Entropy (H) - Higher = More Chaotic', fontsize=13)
