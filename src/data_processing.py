@@ -486,59 +486,64 @@ def generate_diagnostic_plots(df: pd.DataFrame) -> None:
         accent_pink = "crimson"
         cmap_heatmap = 'viridis'
 
-    # Set up the figure with 3 subplots (stacked vertically)
-    fig, axes = plt.subplots(3, 1, figsize=(10, 15))
-    plt.subplots_adjust(hspace=0.4)
-    
+    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
+
     # --- Plot 1: Heatmap of Avg Total Judge Score ---
-    # Pivot: index=Season, columns=Week, values=Avg raw_score_sum
+    plt.figure(figsize=(10, 6))
     heatmap_data = df.groupby(['season', 'week'])['raw_score_sum'].mean().unstack()
-    
-    # Re-index seasons to ensure they are in order and no gaps
     all_seasons = sorted(df['season'].unique())
     heatmap_data = heatmap_data.reindex(all_seasons)
     
-    sns.heatmap(heatmap_data, ax=axes[0], cmap=cmap_heatmap, 
+    sns.heatmap(heatmap_data, cmap=cmap_heatmap, 
                 cbar_kws={'label': 'Avg Total Judge Score'},
                 linewidths=0.5, linecolor='white')
     
-    axes[0].set_title('Avg Total Judge Score Heatmap (Season x Week)', fontsize=14, fontweight='bold', pad=15)
-    axes[0].set_xlabel('Week', fontsize=12)
-    axes[0].set_ylabel('Season', fontsize=12)
+    plt.title('Avg Total Judge Score Heatmap (Season x Week)', fontsize=14, fontweight='bold', pad=15)
+    plt.xlabel('Week', fontsize=12)
+    plt.ylabel('Season', fontsize=12)
+    
+    heatmap_path = PLOTS_DIR / "judge_score_heatmap.png"
+    plt.savefig(heatmap_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"[✓] Heatmap saved to: {heatmap_path}")
     
     # --- Plot 2: Number of Contestants per Season ---
+    plt.figure(figsize=(10, 5))
     contestants_per_season = df.groupby('season')['celebrity_name'].nunique()
     
-    axes[1].plot(contestants_per_season.index, contestants_per_season.values, 
-                 marker='o', markersize=6, linestyle='-', linewidth=2, color=accent_blue)
-    axes[1].fill_between(contestants_per_season.index, contestants_per_season.values, color=accent_blue, alpha=0.1)
+    plt.plot(contestants_per_season.index, contestants_per_season.values, 
+             marker='o', markersize=6, linestyle='-', linewidth=2, color=accent_blue)
+    plt.fill_between(contestants_per_season.index, contestants_per_season.values, color=accent_blue, alpha=0.1)
     
-    axes[1].set_title('Number of Contestants per Season', fontsize=14, fontweight='bold')
-    axes[1].set_xlabel('Season', fontsize=12)
-    axes[1].set_ylabel('Contestants', fontsize=12)
-    axes[1].grid(True, linestyle='--', alpha=0.7)
-    axes[1].set_xticks(range(0, int(df['season'].max()) + 5, 5))
+    plt.title('Number of Contestants per Season', fontsize=14, fontweight='bold')
+    plt.xlabel('Season', fontsize=12)
+    plt.ylabel('Contestants', fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.xticks(range(0, int(df['season'].max()) + 5, 5))
+    
+    contestants_path = PLOTS_DIR / "contestants_per_season.png"
+    plt.savefig(contestants_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"[✓] Contestants plot saved to: {contestants_path}")
     
     # --- Plot 3: Season Length (Max Week) ---
+    plt.figure(figsize=(10, 5))
     weeks_per_season = df.groupby('season')['week'].max()
     
-    axes[2].plot(weeks_per_season.index, weeks_per_season.values, 
-                 marker='s', markersize=6, linestyle='-', linewidth=2, color=accent_pink)
-    axes[2].fill_between(weeks_per_season.index, weeks_per_season.values, color=accent_pink, alpha=0.1)
+    plt.plot(weeks_per_season.index, weeks_per_season.values, 
+             marker='s', markersize=6, linestyle='-', linewidth=2, color=accent_pink)
+    plt.fill_between(weeks_per_season.index, weeks_per_season.values, color=accent_pink, alpha=0.1)
     
-    axes[2].set_title('Season Length (Max Week with Competition)', fontsize=14, fontweight='bold')
-    axes[2].set_xlabel('Season', fontsize=12)
-    axes[2].set_ylabel('Weeks', fontsize=12)
-    axes[2].grid(True, linestyle='--', alpha=0.7)
-    axes[2].set_xticks(range(0, int(df['season'].max()) + 5, 5))
+    plt.title('Season Length (Max Week with Competition)', fontsize=14, fontweight='bold')
+    plt.xlabel('Season', fontsize=12)
+    plt.ylabel('Weeks', fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.xticks(range(0, int(df['season'].max()) + 5, 5))
     
-    # Save the figure
-    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
-    save_path = PLOTS_DIR / "data_diagnostics_summary.png"
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    length_path = PLOTS_DIR / "season_length.png"
+    plt.savefig(length_path, dpi=300, bbox_inches='tight')
     plt.close()
-    
-    print(f"[✓] Diagnostic plots saved to: {save_path}")
+    print(f"[✓] Season length plot saved to: {length_path}")
 
     # --- Plot 4: Top 15 Celebrity Industries (Count) ---
     plt.figure(figsize=(10, 8))

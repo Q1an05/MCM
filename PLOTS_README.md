@@ -12,10 +12,12 @@
 
 ## Section 0 - Data Preprocessing & Exploratory Analysis (数据预处理与探索性分析)
 
-| 图片文件名                     | 代码位置                 | 代码函数                      | 图片含义                                                                                                                                            |
-| ------------------------------ | ------------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `data_diagnostics_summary.png` | `src/data_processing.py` | `generate_diagnostic_plots()` | **数据诊断总览**：整合三个子图：(1) 评委平均总分热力图（赛季 x 周）；(2) 每季参赛人数趋势；(3) 每季赛程周数。用于直观展示原始数据的分布与缺失情况。 |
-| `top_15_industries.png`        | `src/data_processing.py` | `generate_diagnostic_plots()` | **Top 15 行业分布**：展示选手中最常见的 15 个行业类别及其人数，使用淡蓝到深蓝的渐变配色及数据标注。                                                 |
+| 图片文件名 | 代码位置 | 代码函数 | 图片含义 |
+|----------------------------|------------------------|-----------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `judge_score_heatmap.png` | `src/data_processing.py` | `generate_diagnostic_plots()` | **评委总分热力图**：展示各赛季每周的评委平均总分（Season x Week）。用于观察评分标准随时间的演变趋势。 |
+| `contestants_per_season.png` | `src/data_processing.py` | `generate_diagnostic_plots()` | **每季参赛人数**：展示从第1季到第34季每赛季的初始参赛选手人数变化。 |
+| `season_length.png` | `src/data_processing.py` | `generate_diagnostic_plots()` | **每季赛程长度**：展示各赛季实际进行比赛的周数（Max Week），揭示赛程规模的波动。 |
+| `top_15_industries.png` | `src/data_processing.py` | `generate_diagnostic_plots()` | **Top 15 行业分布**：展示选手中最常见的 15 个行业类别及其人数，使用淡蓝到深蓝的渐变配色及数据标注。 |
 
 ---
 
