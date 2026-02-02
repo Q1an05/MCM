@@ -1,0 +1,6 @@
+metric,mean,std,ci_lower,ci_upper,n_samples,interpretation
+confidence,0.34200294052346575,0.006848369237329651,0.3278158596570397,0.3557678316787004,2216,
+n_valid_sims,3420.029405234657,68.4836923732965,3278.158596570397,3557.6783167870035,2216,
+explanation_rate_Rank,1.0,0.0,1.0,1.0,64,"Rank: 解释率 = 100.0% (95% CI: [100.0%, 100.0%])"
+explanation_rate_Percent,1.0,0.0,1.0,1.0,1589,"Percent: 解释率 = 100.0% (95% CI: [100.0%, 100.0%])"
+explanation_rate_Rank_With_Save,1.0,0.0,1.0,1.0,563,"Rank_With_Save: 解释率 = 100.0% (95% CI: [100.0%, 100.0%])"

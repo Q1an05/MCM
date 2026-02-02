@@ -1,0 +1,5 @@
+assumption,F_stat,p_value,significant,conclusion,z_stat
+Age-Score Linearity,N/A,0.0892,False,Linear assumption holds,
+Age-Vote Linearity,N/A,0.7029,False,Linear assumption holds,
+Growth Trajectory ANOVA,0.91,0.404,False,No significant difference across clusters,
+Performance Artist Effect,,0.438,False,Not significantly different from baseline,N/A

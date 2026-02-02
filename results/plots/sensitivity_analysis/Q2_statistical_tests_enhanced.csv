@@ -1,0 +1,5 @@
+test,statistic,p_value,dof,conclusion,interpretation,ci_lower,ci_upper,n_samples
+Chi-square Independence,4.086661307345427,0.12959635069568584,2.0,Fail to reject,规则系统与结果翻转不存在显著关联 (α=0.05),,,
+Flip Rate - Rank,0.07142857142857142,,,,"Rank: 翻转率 = 7.1% (95% CI: [0.0%, 35.6%])",0.0,0.35612309059300185,14.0
+Flip Rate - Percent,0.1693548387096774,,,,"Percent: 翻转率 = 16.9% (95% CI: [12.7%, 22.2%])",0.12707970151953082,0.22171732010040804,248.0
+Flip Rate - Rank_With_Save,0.0821917808219178,,,,"Rank_With_Save: 翻转率 = 8.2% (95% CI: [3.5%, 17.1%])",0.034799660418149025,0.17135950336813338,73.0

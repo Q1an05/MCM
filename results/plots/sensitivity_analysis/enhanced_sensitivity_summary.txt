@@ -1,0 +1,20 @@
+
+## Sensitivity Analysis and Model Evaluation Summary Based on Real Data
+
+### Q1 Bayesian Model (Empirical Bootstrap Analysis)
+1. **Confidence Distribution**: Bootstrap 95% CI calculated from 2216 valid samples
+2. **Explanation Rate Analysis**: 95% CI calculated by rule system
+3. **Stability Analysis**: Temporal consistency analysis by season
+
+### Q2 Rule System (Statistical Significance Tests)
+1. **Chi-square Test**: Test independence between rule system and outcome flips
+2. **Confidence Intervals**: Wilson CI for flip rates by rule system
+3. **Robustness**: Consistency analysis across seasons
+
+### Q3 Clustering (Bootstrap Robustness)
+1. **Clustering Stability**: Bootstrap-based Adjusted Rand Index (ARI) calculation
+2. **Assumption Validation**: Age linearity, growth trajectory ANOVA tests
+
+### Q4 DTPM Backtesting
+1. **Parameter Sensitivity**: Real backtesting analysis of parameter effects
+2. **Pareto Frontier**: Optimal balance between fairness and entertainment

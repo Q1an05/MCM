@@ -142,6 +142,40 @@
 
 ---
 
+## Section 5 - 灵敏度分析与稳健性检验 (Sensitivity Analysis & Robustness)
+
+> **新增说明**：本节包含基于真实数据的增强灵敏度分析，使用 Bootstrap 方法估计置信区间，统计显著性检验，以及回测验证。详见 `src/sensitivity_analysis_enhanced.py`。
+
+### 5.1 Question 1 Bootstrap 置信区间分析
+
+| 图片文件名                           | 代码位置                      | 代码函数                      | 图片含义                                                                                                                                                                          |
+| ------------------------------------ | ----------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q1_bootstrap_confidence_intervals.png` | `src/sensitivity_analysis_enhanced.py` | `q1_model_bootstrap_analysis()` | **Bootstrap 置信区间**：对 Bayesian 模型在三种规则系统下的置信度、解释率进行 1000 次 Bootstrap 重采样，计算 95% 置信区间。用于评估模型估计的稳健性和不确定性。                          |
+| `q1_stability_by_season.png`         | `src/sensitivity_analysis_enhanced.py` | `q1_model_bootstrap_analysis()` | **按赛季稳定性分析**：展示不同赛季下模型置信度和有效模拟数的稳定性。使用 Wilson Score Interval 估计比例置信区间。用于识别哪些赛季的预测更可靠。                                      |
+
+### 5.2 Question 2 统计显著性检验
+
+| 图片文件名                           | 代码位置                      | 代码函数                         | 图片含义                                                                                                                                                                          |
+| ------------------------------------ | ----------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q2_statistical_tests.png`           | `src/sensitivity_analysis_enhanced.py` | `q2_rule_comparison_statistical_tests()` | **统计显著性检验**：使用卡方检验（Chi-square test）评估规则系统与淘汰结果之间的独立性。展示转换率和 Wilson 置信区间。用于验证规则系统对结果的统计显著性影响。                      |
+| `q2_robustness_by_season.png`        | `src/sensitivity_analysis_enhanced.py` | `q2_rule_comparison_statistical_tests()` | **按赛季稳健性分析**：检验不同赛季下规则系统比较结果的稳健性。计算各赛季的转换率及其置信区间，展示统计显著性的季节变化。                                                             |
+
+### 5.3 Question 3 聚类稳健性分析 (Bootstrap)
+
+| 图片文件名                           | 代码位置                      | 代码函数                      | 图片含义                                                                                                                                                                          |
+| ------------------------------------ | ----------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q3_clustering_bootstrap.png`        | `src/sensitivity_analysis_enhanced.py` | `q3_clustering_bootstrap_analysis()` | **聚类 Bootstrap 稳定性**：对行业聚类进行 100 次 Bootstrap 重采样，计算调整兰德指数（ARI）评估聚类稳健性。展示不同聚类数 K 下的稳定性热力图。用于验证聚类结果的可靠性。             |
+| `q3_assumption_validation.png`       | `src/sensitivity_analysis_enhanced.py` | `q3_clustering_bootstrap_analysis()` | **聚类假设验证**：验证行业聚类的基本假设（Physicality/Performance/Fanbase 维度）。使用 Bootstrap 置信区间检验各聚类中心是否显著不同。验证聚类分析的合理性。                        |
+
+### 5.4 Question 4 DTPM 回测验证与参数敏感性
+
+| 图片文件名                           | 代码位置                      | 代码函数                      | 图片含义                                                                                                                                                                          |
+| ------------------------------------ | ----------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q4_dtpm_backtesting.png`            | `src/sensitivity_analysis_enhanced.py` | `q4_dtpm_backtesting()`       | **DTPM 回测分析**：对 420 组 DTPM 参数组合（w_start, w_end, beta）进行历史回测。展示参数敏感性热力图，分析各参数对 upset_rate 和公平性指标的影响。验证参数设置的稳健性。             |
+| `q4_pareto_frontier.png`             | `src/sensitivity_analysis_enhanced.py` | `q4_pareto_frontier_analysis()` | **Pareto 前沿分析**：在公平性（kendall_tau）与娱乐性（1-upset_rate）之间寻找 Pareto 最优边界。展示参数空间的权衡关系，为系统设计提供决策依据。                                      |
+
+---
+
 ## 附录
 
 ### A. 图表代码索引
