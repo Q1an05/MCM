@@ -38,8 +38,8 @@ W_START_RANGE = np.arange(0.5, 0.95, 0.05)
 W_END_RANGE = np.arange(0.3, 0.65, 0.05)
 BETA_RANGE = np.arange(0.4, 1.05, 0.1)
 
-# Target Ideal Upset Rate (The "Golden Mean")
-TARGET_UPSET_RATE = 0.15
+# Target Ideal Upset Rate (The "Golden Mean") - shifted to center of 15-25%
+TARGET_UPSET_RATE = 0.20
 
 # =============================================================================
 # Core Logic: Dynamic-Threshold Percent Model
@@ -94,8 +94,9 @@ class DTPM_Evaluator:
             # 3. Performance Gated Multiplier (Beta)
             mean_judge = s_judge.mean()
             # Vectorized gamma calculation
-            # If score < mean, multiplier = beta, else 1.0
-            gamma = np.where(s_judge < mean_judge, beta, 1.0)
+            # If score < 0.8 * mean, multiplier = beta, else 1.0
+            # THRESHOLD UPDATE: Changed from mean to 0.8 * mean for robustness
+            gamma = np.where(s_judge < 0.8 * mean_judge, beta, 1.0)
             
             # 4. Total Score Calculation
             # Formula: w_t * P_judge + (1 - w_t) * (P_fan * gamma)
@@ -215,9 +216,9 @@ def plot_pareto(all_results, pareto_results):
                 c='red', s=50, zorder=5)
     
     # Highlight Golden Zone
-    plt.axvspan(0.10, 0.20, color='gold', alpha=0.2, label='Golden Zone (10%-20% Upset)')
+    plt.axvspan(0.15, 0.25, color='gold', alpha=0.2, label='Golden Zone (15%-25% Upset)')
     
-    # Find Best Point (Closest to 0.15 within Frontier)
+    # Find Best Point (Closest to target within Frontier)
     best_point = pareto_results.loc[pareto_results['upset_diff'].idxmin()]
     plt.scatter(best_point['upset_rate'], best_point['kendall_tau'], 
                 c='blue', s=150, marker='*', zorder=10, 
@@ -270,7 +271,7 @@ def main():
     
     # Find Recommended Parameter Set
     # Filter for Golden Interval first
-    golden_df = results_df[(results_df['upset_rate'] >= 0.10) & (results_df['upset_rate'] <= 0.20)]
+    golden_df = results_df[(results_df['upset_rate'] >= 0.15) & (results_df['upset_rate'] <= 0.25)]
     if not golden_df.empty:
         # Maximize Fairness within Golden Zone
         best_scenario = golden_df.loc[golden_df['kendall_tau'].idxmax()]

@@ -7,10 +7,10 @@ This analysis simulates the **Dynamic-Threshold Percent Model (DTPM)** retrospec
 
 | Contestant | Season | Actual Outcome | New Outcome | Details | Actual Week Num | New Week Num |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jerry Rice | 2 | Runner-Up (2nd) | Week 7 | Ranked Last (4/4). Penalty Applied: Yes (x0.4) | 8 | 7 |
+| Jerry Rice | 2 | Runner-Up (2nd) | Week 7 | Ranked Last (4/4). Penalty Applied: No | 8 | 7 |
 | Billy Ray Cyrus | 4 | 5th Place | Week 1 | Ranked Last (11/11). Penalty Applied: Yes (x0.4) | 8 | 1 |
 | Bristol Palin | 11 | 3rd Place | Week 5 | Ranked Last (8/8). Penalty Applied: Yes (x0.4) | 10 | 5 |
-| Bobby Bones | 27 | Winner (1st) | Week 9 | Ranked Last (4/4). Penalty Applied: Yes (x0.4) | 9 | 9 |
+| Bobby Bones | 27 | Winner (1st) | Week 9 | Ranked Last (4/4). Penalty Applied: No | 9 | 9 |
 
 
 ## Detailed Analysis
@@ -18,7 +18,7 @@ This analysis simulates the **Dynamic-Threshold Percent Model (DTPM)** retrospec
 ### Jerry Rice (Season 2)
 - **Historical Result**: Runner-Up (2nd)
 - **DTPM Result**: Week 7
-- **Why**: Ranked Last (4/4). Penalty Applied: Yes (x0.4)
+- **Why**: Ranked Last (4/4). Penalty Applied: No
 
 > **IMPACT**: Significant correction of historical longevity.
 
@@ -39,7 +39,7 @@ This analysis simulates the **Dynamic-Threshold Percent Model (DTPM)** retrospec
 ### Bobby Bones (Season 27)
 - **Historical Result**: Winner (1st)
 - **DTPM Result**: Week 9
-- **Why**: Ranked Last (4/4). Penalty Applied: Yes (x0.4)
+- **Why**: Ranked Last (4/4). Penalty Applied: No
 
 > **IMPACT**: The new system successfully prevented a controversial win, protecting the integrity of the competition.
 

@@ -109,7 +109,8 @@ def analyze_case_study(df, targets, params):
             
             # 4. Performance Gated Multiplier
             mean_judge = s_judge.mean()
-            gamma = np.where(s_judge < mean_judge, params['beta'], 1.0)
+            # THRESHOLD UPDATE: Changed from mean to 0.8 * mean for robustness
+            gamma = np.where(s_judge < 0.8 * mean_judge, params['beta'], 1.0)
             
             # 5. Total Score
             # DTPM Score = w * P_judge + (1-w) * (P_fan * gamma)
@@ -145,7 +146,7 @@ def analyze_case_study(df, targets, params):
                 new_exit_week = f"Week {week}"
                 new_exit_week_num = week
                 # Analyze why
-                is_below_avg = target_judge_score < target_avg
+                is_below_avg = target_judge_score < 0.8 * target_avg
                 penalty_text = "Yes (x0.4)" if is_below_avg else "No"
                 elimination_reason = f"Ranked Last ({int(target_rank)}/{num_contestants}). Penalty Applied: {penalty_text}"
                 break
