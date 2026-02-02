@@ -15,6 +15,8 @@ import pandas as pd
 import numpy as np
 import re
 from pathlib import Path
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 # =============================================================================
@@ -22,6 +24,7 @@ from pathlib import Path
 # =============================================================================
 RAW_DATA_PATH = Path(__file__).parent.parent / "data_raw" / "2026_MCM_Problem_C_Data.csv"
 OUTPUT_PATH = Path(__file__).parent.parent / "data_processed" / "dwts_simulation_input.csv"
+PLOTS_DIR = Path(__file__).parent.parent / "results" / "plots"
 
 # Safe high number to mark finalists as active throughout the season
 FINALIST_EXIT_WEEK = 99
@@ -217,13 +220,14 @@ def melt_scores_to_long(df: pd.DataFrame) -> pd.DataFrame:
     print(f"[INFO] Found data for weeks: {min(weeks)}-{max(weeks)}")
     
     # Base columns to keep
-    base_cols = ['season', 'celebrity_name', 'exit_week', 'result_type', 'placement']
+    base_cols = ['season', 'celebrity_name', 'celebrity_industry', 'exit_week', 'result_type', 'placement']
     
     long_records = []
     
     for _, row in df.iterrows():
         season = row['season']
         celeb_name = row['celebrity_name']
+        celeb_industry = row.get('celebrity_industry', 'Unknown')
         exit_week = row['exit_week']
         result_type = row['result_type']
         placement = row.get('placement', np.nan)
@@ -259,6 +263,7 @@ def melt_scores_to_long(df: pd.DataFrame) -> pd.DataFrame:
                 'season': season,
                 'week': week,
                 'celebrity_name': celeb_name,
+                'celebrity_industry': celeb_industry,
                 'exit_week': exit_week,
                 'result_type': result_type,
                 'placement': placement,
@@ -449,6 +454,133 @@ def display_sample_data(df: pd.DataFrame) -> None:
 
 
 # =============================================================================
+# Diagnostic Visualizations
+# =============================================================================
+def generate_diagnostic_plots(df: pd.DataFrame) -> None:
+    """
+    Generate diagnostic plots as shown in the requirements:
+    1. Avg Total Judge Score Heatmap (Season x Week)
+    2. Number of Contestants per Season
+    3. Season Length (Max Week with Competition)
+    
+    Args:
+        df: Processed Long Format DataFrame
+    """
+    print("\n" + "="*60)
+    print("GENERATING DIAGNOSTIC PLOTS")
+    print("="*60)
+    
+    try:
+        # Try to use unified viz config if available
+        import viz_config
+        viz_config.setup_academic_style()
+        palette = viz_config.MORANDI_COLORS
+        accent_blue = viz_config.MORANDI_ACCENT[1]
+        accent_pink = viz_config.MORANDI_ACCENT[0]
+        # Use Morandi sequential blue for the heatmap
+        cmap_heatmap = 'morandi_seq_blue'
+    except ImportError:
+        sns.set_theme(style="whitegrid")
+        palette = sns.color_palette("muted")
+        accent_blue = "steelblue"
+        accent_pink = "crimson"
+        cmap_heatmap = 'viridis'
+
+    # Set up the figure with 3 subplots (stacked vertically)
+    fig, axes = plt.subplots(3, 1, figsize=(10, 15))
+    plt.subplots_adjust(hspace=0.4)
+    
+    # --- Plot 1: Heatmap of Avg Total Judge Score ---
+    # Pivot: index=Season, columns=Week, values=Avg raw_score_sum
+    heatmap_data = df.groupby(['season', 'week'])['raw_score_sum'].mean().unstack()
+    
+    # Re-index seasons to ensure they are in order and no gaps
+    all_seasons = sorted(df['season'].unique())
+    heatmap_data = heatmap_data.reindex(all_seasons)
+    
+    sns.heatmap(heatmap_data, ax=axes[0], cmap=cmap_heatmap, 
+                cbar_kws={'label': 'Avg Total Judge Score'},
+                linewidths=0.5, linecolor='white')
+    
+    axes[0].set_title('Avg Total Judge Score Heatmap (Season x Week)', fontsize=14, fontweight='bold', pad=15)
+    axes[0].set_xlabel('Week', fontsize=12)
+    axes[0].set_ylabel('Season', fontsize=12)
+    
+    # --- Plot 2: Number of Contestants per Season ---
+    contestants_per_season = df.groupby('season')['celebrity_name'].nunique()
+    
+    axes[1].plot(contestants_per_season.index, contestants_per_season.values, 
+                 marker='o', markersize=6, linestyle='-', linewidth=2, color=accent_blue)
+    axes[1].fill_between(contestants_per_season.index, contestants_per_season.values, color=accent_blue, alpha=0.1)
+    
+    axes[1].set_title('Number of Contestants per Season', fontsize=14, fontweight='bold')
+    axes[1].set_xlabel('Season', fontsize=12)
+    axes[1].set_ylabel('Contestants', fontsize=12)
+    axes[1].grid(True, linestyle='--', alpha=0.7)
+    axes[1].set_xticks(range(0, int(df['season'].max()) + 5, 5))
+    
+    # --- Plot 3: Season Length (Max Week) ---
+    weeks_per_season = df.groupby('season')['week'].max()
+    
+    axes[2].plot(weeks_per_season.index, weeks_per_season.values, 
+                 marker='s', markersize=6, linestyle='-', linewidth=2, color=accent_pink)
+    axes[2].fill_between(weeks_per_season.index, weeks_per_season.values, color=accent_pink, alpha=0.1)
+    
+    axes[2].set_title('Season Length (Max Week with Competition)', fontsize=14, fontweight='bold')
+    axes[2].set_xlabel('Season', fontsize=12)
+    axes[2].set_ylabel('Weeks', fontsize=12)
+    axes[2].grid(True, linestyle='--', alpha=0.7)
+    axes[2].set_xticks(range(0, int(df['season'].max()) + 5, 5))
+    
+    # Save the figure
+    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
+    save_path = PLOTS_DIR / "data_diagnostics_summary.png"
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    print(f"[✓] Diagnostic plots saved to: {save_path}")
+
+    # --- Plot 4: Top 15 Celebrity Industries (Count) ---
+    plt.figure(figsize=(10, 8))
+    
+    # Get unique contestants first to avoid double counting across weeks
+    unique_contestants = df.drop_duplicates(subset=['celebrity_name'])
+    industry_counts = unique_contestants['celebrity_industry'].value_counts().head(15)
+    
+    # Create a gradient from light blue to medium blue (avoiding black-ish colors)
+    # Using a subset of the Blues palette or a custom Morandi gradient
+    n_bars = len(industry_counts)
+    try:
+        # Generate colors from the Morandi sequential blue cmap
+        # We sample from 0.2 to 0.7 to keep it in the "light to medium" blue range
+        cmap = plt.get_cmap('morandi_seq_blue')
+        colors = [cmap(i) for i in np.linspace(0.3, 0.8, n_bars)]
+    except:
+        colors = sns.color_palette("Blues", n_colors=n_bars)
+    
+    # Reverse so the largest bars at the top are the darkest (but mid-range blue)
+    colors = colors[::-1]
+    
+    bars = sns.barplot(x=industry_counts.values, y=industry_counts.index, 
+                       palette=colors, alpha=0.85, hue=industry_counts.index, legend=False)
+    
+    # Add data labels to each bar
+    for i, v in enumerate(industry_counts.values):
+        plt.text(v + 0.5, i, str(int(v)), color='#333333', va='center', fontweight='bold', fontsize=10)
+    
+    plt.title('Top 15 Celebrity Industries (Count)', fontsize=14, fontweight='bold')
+    plt.xlabel('Count', fontsize=12)
+    plt.ylabel('Industry', fontsize=12)
+    plt.xlim(0, industry_counts.values.max() * 1.1)  # Give some space for labels
+    plt.grid(True, axis='x', linestyle='--', alpha=0.3)
+    
+    industry_save_path = PLOTS_DIR / "top_15_industries.png"
+    plt.savefig(industry_save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"[✓] Industry plot saved to: {industry_save_path}")
+
+
+# =============================================================================
 # Main Pipeline
 # =============================================================================
 def main():
@@ -480,6 +612,9 @@ def main():
     
     # Step 5: Validate and save
     validate_and_save(final_df, OUTPUT_PATH)
+    
+    # Step 6: Generate diagnostic plots
+    generate_diagnostic_plots(final_df)
     
     # Display samples
     display_sample_data(final_df)
