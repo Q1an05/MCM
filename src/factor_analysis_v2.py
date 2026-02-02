@@ -23,6 +23,8 @@ import statsmodels.formula.api as smf
 from pathlib import Path
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from mpl_toolkits.mplot3d import Axes3D
 from sklearn.metrics import silhouette_score
 from scipy import stats
 import warnings
@@ -352,50 +354,112 @@ def visualize_k_selection(k_range, inertias, silhouettes, chosen_k):
 
 
 def visualize_clusters(df_ind: pd.DataFrame, centers: np.ndarray, scaler: StandardScaler, n_clusters: int):
-    """Visualize the K-Means clustering results."""
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-    
-    # Use Morandi palette
+    """Visualize the K-Means clustering results using a 3D scatter plot and profiles."""
     unique_clusters = df_ind['cluster_name'].unique()
     colors = {name: get_color(i) for i, name in enumerate(unique_clusters)}
-    
-    ax1 = axes[0]
-    for cluster_name in unique_clusters:
-        subset = df_ind[df_ind['cluster_name'] == cluster_name]
-        ax1.scatter(subset['performance'], subset['fanbase'], 
-                   c=colors.get(cluster_name, MORANDI_COLORS[0]), label=cluster_name, 
-                   s=120, alpha=0.75, edgecolors='white', linewidth=1.5)
-    
-    style_axes(ax1,
-               title=f'Industry Clustering (K={n_clusters}): Performance vs Fanbase',
-               xlabel='Performance Score',
-               ylabel='Fanbase Score')
-    ax1.legend(framealpha=0.9)
-    
-    # Plot 2: Bar chart of cluster centers
-    ax2 = axes[1]
-    x = np.arange(3)
-    width = 0.8 / n_clusters
-    
-    # Map cluster indices to names (sorted by cluster number for consistency)
+    features = ['physicality', 'performance', 'fanbase']
     cluster_name_list = list(unique_clusters)
+
+    # Figure 1: 3D Scatter Plot (Standalone)
+    fig_3d = plt.figure(figsize=(10, 9))
+    ax1 = fig_3d.add_subplot(111, projection='3d')
+    
+    # Set background color to match academic style
+    ax1.set_facecolor('white')
+    ax1.xaxis.pane.fill = False
+    ax1.yaxis.pane.fill = False
+    ax1.zaxis.pane.fill = False
+    ax1.xaxis.pane.set_edgecolor('w')
+    ax1.yaxis.pane.set_edgecolor('w')
+    ax1.zaxis.pane.set_edgecolor('w')
+    
+    for i, cluster_name in enumerate(unique_clusters):
+        subset = df_ind[df_ind['cluster_name'] == cluster_name]
+        
+        # Add slight jitter to make overlapping points visible in 3D space
+        jitter = 0.06
+        x_j = subset['physicality'] + np.random.uniform(-jitter, jitter, len(subset))
+        y_j = subset['performance'] + np.random.uniform(-jitter, jitter, len(subset))
+        z_j = subset['fanbase'] + np.random.uniform(-jitter, jitter, len(subset))
+        
+        ax1.scatter(x_j, y_j, z_j,
+                   c=colors.get(cluster_name, MORANDI_COLORS[0]), 
+                   label=cluster_name, 
+                   s=130, alpha=0.75, edgecolors='white', linewidth=0.8, depthshade=True)
+    
+    # --- Professional Academic View Settings ---
+    # Use orthographic projection for academic journal standards
+    ax1.set_proj_type('ortho')
+    ax1.view_init(elev=25, azim=45)
+    
+    # Move camera slightly back to fit labels
+    ax1.dist = 11
+    
+    # Adjust axes position to leave space for labels on all sides
+    ax1.set_position([0.15, 0.15, 0.7, 0.7])
+    
+    # X and Y labels with conservative padding
+    ax1.set_xlabel('Physicality Score', fontsize=11, labelpad=10, fontweight='bold')
+    ax1.set_ylabel('Performance Score', fontsize=11, labelpad=10, fontweight='bold')
+    
+    # MANDATORY FIX: Use text2D for Z-label because set_zlabel often fails in 3D plots
+    # This places the label on the 2D plane of the subplot, guaranteed visible.
+    ax1.text2D(-0.12, 0.5, "Fanbase Score", transform=ax1.transAxes, 
+               rotation=90, va='center', fontweight='bold', fontsize=11)
+    
+    # Set uniform axis limits to provide "breathing room" (Nature standard)
+    # Increasing to 8.0 to make the data even more concentrated in the lower corner
+    ax1.set_xlim(0, 8)
+    ax1.set_ylim(0, 8)
+    ax1.set_zlim(0, 8)
+    # -------------------------------------------
+
+    ax1.set_title(f'3D Industry Clustering Analysis (K={n_clusters})', 
+                  fontsize=15, fontweight='bold', pad=30)
+    
+    # Legend position optimization
+    ax1.legend(loc='upper right', framealpha=0.9, bbox_to_anchor=(1.15, 1.0))
+    
+    # Manual padding adjustment
+    fig_3d.subplots_adjust(left=0.2, right=0.9, bottom=0.15, top=0.85)
+    
+    save_path = OUTPUT_DIR / 'q3_industry_clustering_3d.png'
+    # Use None for bbox_inches to prevent Matplotlib from cropping labels it can't "see" in 3D
+    fig_3d.savefig(save_path, dpi=300, bbox_inches=None) 
+    fig_3d.savefig(OUTPUT_DIR / 'q3_industry_clustering.png', dpi=300, bbox_inches=None)
+    
+    print(f"[INFO] 3D Clustering visualization saved to {save_path}")
+
+    # Figure 2: Bar chart of cluster centers (Profiles - Standalone)
+    fig_profile, ax2 = plt.subplots(figsize=(10, 6))
+    x_ticks = np.arange(len(features))
+    width = 0.8 / n_clusters
     
     for i, center in enumerate(centers):
         name = cluster_name_list[i] if i < len(cluster_name_list) else f'Cluster {i}'
-        ax2.bar(x + i*width, center, width, label=name, 
+        rects = ax2.bar(x_ticks + i*width, center, width, label=name, 
                 color=colors.get(name, get_color(i)), alpha=0.85, 
                 edgecolor='white', linewidth=1)
+        
+        # Add value labels
+        for rect in rects:
+            height = rect.get_height()
+            ax2.text(rect.get_x() + rect.get_width()/2., height + 0.05,
+                    f'{height:.2f}', ha='center', va='bottom', 
+                    fontsize=10, fontweight='bold', color='#333333')
     
-    ax2.set_xticks(x + width * (n_clusters - 1) / 2)
+    ax2.set_xticks(x_ticks + width * (n_clusters - 1) / 2)
     ax2.set_xticklabels(['Physicality', 'Performance', 'Fanbase'], fontweight='bold')
     style_axes(ax2,
-               title=f'Cluster Profiles (K={n_clusters})',
-               ylabel='Score (1-5)')
+               title='Cluster Attribute Profiles (Mean Scores)',
+               ylabel='Score (1-5 scale)')
     ax2.legend(loc='upper right', framealpha=0.9)
-    ax2.set_ylim(0, 5.5)
+    ax2.set_ylim(0, 5.8)
     
-    save_figure(fig, OUTPUT_DIR / 'q3_industry_clustering.png')
-    print(f"[INFO] Clustering visualization saved to {OUTPUT_DIR / 'q3_industry_clustering.png'}")
+    save_figure(fig_profile, OUTPUT_DIR / 'q3_cluster_attribute_profiles.png')
+    
+    print(f"[INFO] 3D Clustering visualization saved to {OUTPUT_DIR / 'q3_industry_clustering_3d.png'}")
+    print(f"[INFO] Cluster attributes profile saved to {OUTPUT_DIR / 'q3_cluster_attribute_profiles.png'}")
 
 
 # =============================================================================

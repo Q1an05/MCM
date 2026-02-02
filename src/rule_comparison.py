@@ -602,8 +602,16 @@ def plot_fan_bias_comparison(fpi: Dict[str, float]):
     era_colors_morandi = [ERA_COLORS['Rank'], ERA_COLORS['Percent'], ERA_COLORS['Rank_With_Save']]
     for idx, (era, values) in enumerate(era_values.items()):
         offset = (idx - 1) * width
-        ax2.bar(x + offset, values, width, label=era, alpha=0.85, 
+        rects = ax2.bar(x + offset, values, width, label=era, alpha=0.85, 
                 color=era_colors_morandi[idx], edgecolor='white', linewidth=0.8)
+        
+        # Add value labels
+        for rect in rects:
+            height = rect.get_height()
+            if height > 0:
+                ax2.text(rect.get_x() + rect.get_width()/2., height + 0.015,
+                        f'{height:.2f}', ha='center', va='bottom', 
+                        fontsize=8, fontweight='bold', color='#444444')
     
     style_axes(ax2, 
                title='Fan Power Index by Historical Era',
