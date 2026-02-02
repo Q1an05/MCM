@@ -197,8 +197,8 @@ def plot_stress_test(results, save_path: Path):
     ax.plot(entropy_vals, tal_surv, color=MORANDI_ACCENT[1], linewidth=3, marker='s', markersize=6,
             label=f'{tal_name} Survival (Talent Protection)')
     
-    # Mediocrity (Risk) - Pink (#F1C3C1)
-    ax.plot(entropy_vals, med_surv, color=MORANDI_COLORS[1], linewidth=3, marker='o', markersize=6,
+    # Mediocrity (Risk) - Strong Orange (#D95F02)
+    ax.plot(entropy_vals, med_surv, color=MORANDI_ACCENT[3], linewidth=3, marker='o', markersize=6,
             label=f'{med_name} Survival (Mediocrity Risk)')
     
     # Identify robustness zone (talent safe >90%, mediocrity <40%)
@@ -454,10 +454,24 @@ def plot_decision_boundary(results, save_path: Path):
         ('System C: Rank+Save', Z_save, MORANDI_COLORS[3])
     ]
     
-    # Smooth colormap: Cherry Blossom Pink (Eliminated) -> Sky Blue (Safe)
-    # Using MORANDI_COLORS[1] (#F1C3C1) and MORANDI_COLORS[0] (#B7D5EC) for a fully Morandi soft look
-    cmap_smooth = LinearSegmentedColormap.from_list('Survival', [MORANDI_COLORS[1], MORANDI_COLORS[0]])
-    cmap_binary = ListedColormap([MORANDI_COLORS[1], MORANDI_COLORS[0]])
+    # Create customized colormap with varying alpha and colors
+    # Z=0.0 (Strong Orange/Dead) -> System A/B elimination
+    # Z=0.4 (Cherry Blossom Pink/Risky) -> System C high-risk zone
+    from matplotlib.colors import to_rgba
+    orange_opaque = to_rgba(MORANDI_ACCENT[3], 0.95)
+    pink_trans = to_rgba(MORANDI_COLORS[1], 0.7)  # Cherry Blossom Pink
+    white_trans = to_rgba('#FFFFFF', 1.0)
+    blue_opaque = to_rgba(MORANDI_COLORS[0], 0.85)
+
+    cmap_smooth = LinearSegmentedColormap.from_list('Survival', [
+        (0.0, orange_opaque),  # 0.0 - Strong Orange
+        (0.4, pink_trans),     # 0.4 - Cherry Blossom Pink
+        (0.5, white_trans),    # 0.5 - Neutral midpoint
+        (1.0, blue_opaque)     # 1.0 - Sky Blue
+    ])
+    
+    # Binary map for System A/B
+    cmap_binary = ListedColormap([orange_opaque, blue_opaque])
     
     for ax, (title, Z, color) in zip(axes, systems):
         # Determine plot style based on whether data is probabilistic
@@ -465,16 +479,16 @@ def plot_decision_boundary(results, save_path: Path):
         
         if is_probabilistic:
             # Use smooth gradient for probabilistic systems (e.g., System C)
-            # Increased alpha to 0.85 to make light Morandi colors pop more
+            # Remove global alpha to use the RGBA alpha from colormap
             contour = ax.contourf(X, Y * 100, Z, levels=np.linspace(0, 1, 21), 
-                                  cmap=cmap_smooth, alpha=0.85)
+                                  cmap=cmap_smooth)
             # Add a dashed line for the 50% "Expected" boundary
             ax.contour(X, Y * 100, Z, levels=[0.5], colors='black', 
                       linewidths=1.5, linestyles='--')
         else:
             # Use binary colors for deterministic systems (System A & B)
             contour = ax.contourf(X, Y * 100, Z, levels=[-0.5, 0.5, 1.5], 
-                                  cmap=cmap_binary, alpha=0.85)
+                                  cmap=cmap_binary)
             # Add solid contour lines
             ax.contour(X, Y * 100, Z, levels=[0.5], colors='black', linewidths=2)
         
@@ -523,7 +537,7 @@ def plot_decision_boundary(results, save_path: Path):
     
     # Create legend
     safe_patch = mpatches.Patch(color=MORANDI_COLORS[0], alpha=0.85, label='Safe Zone')
-    elim_patch = mpatches.Patch(color=MORANDI_COLORS[1], alpha=0.85, label='Elimination Zone')
+    elim_patch = mpatches.Patch(color=MORANDI_ACCENT[3], alpha=0.85, label='Elimination Zone')
     boundary_line = plt.Line2D([0], [0], color='black', linewidth=2, label='Survival Boundary')
     prob_line = plt.Line2D([0], [0], color='black', linewidth=1.5, linestyle='--', label='50% Prob Boundary')
     
