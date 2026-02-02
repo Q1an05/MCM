@@ -1,5 +1,3 @@
-Target,Model,AIC,BIC,P_Quad
-Skill,Linear,,,
-Skill,Quadratic,,,0.0751632186638144
-Popularity,Linear,,,
-Popularity,Quadratic,,,0.6872096009980679
+Model,Linear_LogLik,Quadratic_LogLik,Age_Sq_Coef,Age_Sq_Pvalue,Recommended
+Technical (Judge Score),1706.9941009634276,1703.1257968191185,-0.003344007143745892,0.08922820553025317,linear
+Popularity (Fan Share),-4304.394436847453,-4307.503422476551,-0.006330604172594887,0.7028859362202589,linear
