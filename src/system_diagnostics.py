@@ -330,6 +330,48 @@ def apply_save_rule(judge_score: float, fan_share: float,
         return fan_ranks[virtual_idx] > fan_ranks[other_idx]
 
 
+def get_survival_probability(system_type: str, judge_score: float, fan_share: float,
+                             pool_scores: np.ndarray, pool_shares: np.ndarray) -> float:
+    """Calculate the mathematical probability of survival (0.0 to 1.0)."""
+    if system_type == 'rank':
+        return 0.0 if apply_rank_rule(judge_score, fan_share, pool_scores, pool_shares) else 1.0
+    elif system_type == 'percent':
+        return 0.0 if apply_percent_rule(judge_score, fan_share, pool_scores, pool_shares) else 1.0
+    elif system_type == 'save':
+        # Combined virtual with pool
+        all_scores = np.append(pool_scores, judge_score)
+        all_shares = np.append(pool_shares, fan_share)
+        n = len(all_scores)
+        virtual_idx = n - 1
+        
+        # Compute ranks
+        judge_ranks = pd.Series(all_scores).rank(method='average', ascending=False).values
+        fan_ranks = pd.Series(all_shares).rank(method='average', ascending=False).values
+        total_ranks = judge_ranks + fan_ranks
+        
+        # Identify Bottom 2
+        sorted_indices = np.argsort(-total_ranks)  # Descending
+        bottom2_indices = sorted_indices[:2]
+        
+        # Check if virtual is in Bottom 2
+        if virtual_idx not in bottom2_indices:
+            return 1.0  # Safe
+        
+        # In Bottom 2: compare judge scores
+        other_idx = bottom2_indices[0] if bottom2_indices[1] == virtual_idx else bottom2_indices[1]
+        
+        if all_scores[virtual_idx] < all_scores[other_idx]:
+            # Virtual has lower score, survival prob is low
+            return 1.0 - MERIT_SAVE_PROB
+        elif all_scores[virtual_idx] > all_scores[other_idx]:
+            # Virtual has higher score, survival prob is high
+            return MERIT_SAVE_PROB
+        else:
+            # Tie: survival depends on fan rank
+            return 1.0 if fan_ranks[virtual_idx] < fan_ranks[other_idx] else 0.0
+    return 0.0
+
+
 def compute_decision_boundary(df: pd.DataFrame, season: int = 28, week: int = 6,
                               score_range: tuple = (15, 30), share_range: tuple = (0.0, 0.20),
                               resolution: int = 80):
@@ -376,7 +418,7 @@ def compute_decision_boundary(df: pd.DataFrame, season: int = 28, week: int = 6,
     Z_percent = np.zeros((resolution, resolution))
     Z_save = np.zeros((resolution, resolution))
     
-    # Grid search
+    # Grid search - Using probabilistic mapping
     for i in range(resolution):
         for j in range(resolution):
             score = X[j, i]
@@ -385,9 +427,9 @@ def compute_decision_boundary(df: pd.DataFrame, season: int = 28, week: int = 6,
             # Normalize score to 0-1 range (like real data)
             norm_score = score / 30.0
             
-            Z_rank[j, i] = 1 if not apply_rank_rule(norm_score, share, pool_scores, pool_shares) else 0
-            Z_percent[j, i] = 1 if not apply_percent_rule(norm_score, share, pool_scores, pool_shares) else 0
-            Z_save[j, i] = 1 if not apply_save_rule(norm_score, share, pool_scores, pool_shares) else 0
+            Z_rank[j, i] = get_survival_probability('rank', norm_score, share, pool_scores, pool_shares)
+            Z_percent[j, i] = get_survival_probability('percent', norm_score, share, pool_scores, pool_shares)
+            Z_save[j, i] = get_survival_probability('save', norm_score, share, pool_scores, pool_shares)
     
     print(f"  Grid computed: {resolution**2} points")
     
@@ -408,16 +450,29 @@ def plot_decision_boundary(results, save_path: Path):
         ('System C: Rank+Save', Z_save, MORANDI_COLORS[3])
     ]
     
-    # Custom colormap: Red (eliminated) -> Green (safe) using Morandi colors
-    cmap = ListedColormap([MORANDI_ACCENT[0], MORANDI_ACCENT[2]])
+    # Smooth colormap: Cherry Blossom Pink (Eliminated) -> Sky Blue (Safe)
+    # Using MORANDI_COLORS[1] (#F1C3C1) and MORANDI_COLORS[0] (#B7D5EC) for a fully Morandi soft look
+    cmap_smooth = LinearSegmentedColormap.from_list('Survival', [MORANDI_COLORS[1], MORANDI_COLORS[0]])
+    cmap_binary = ListedColormap([MORANDI_COLORS[1], MORANDI_COLORS[0]])
     
     for ax, (title, Z, color) in zip(axes, systems):
-        # Contour plot: Hard boundaries but with Monte Carlo "fuzziness"
-        contour = ax.contourf(X, Y * 100, Z, levels=[-0.5, 0.5, 1.5], 
-                              cmap=cmap, alpha=0.6)
+        # Determine plot style based on whether data is probabilistic
+        is_probabilistic = not np.all(np.logical_or(Z == 0, Z == 1))
         
-        # Add contour lines
-        ax.contour(X, Y * 100, Z, levels=[0.5], colors='black', linewidths=2)
+        if is_probabilistic:
+            # Use smooth gradient for probabilistic systems (e.g., System C)
+            # Increased alpha to 0.85 to make light Morandi colors pop more
+            contour = ax.contourf(X, Y * 100, Z, levels=np.linspace(0, 1, 21), 
+                                  cmap=cmap_smooth, alpha=0.85)
+            # Add a dashed line for the 50% "Expected" boundary
+            ax.contour(X, Y * 100, Z, levels=[0.5], colors='black', 
+                      linewidths=1.5, linestyles='--')
+        else:
+            # Use binary colors for deterministic systems (System A & B)
+            contour = ax.contourf(X, Y * 100, Z, levels=[-0.5, 0.5, 1.5], 
+                                  cmap=cmap_binary, alpha=0.85)
+            # Add solid contour lines
+            ax.contour(X, Y * 100, Z, levels=[0.5], colors='black', linewidths=2)
         
         # Overlay real contestants
         for name, score, share in real_contestants:
@@ -463,15 +518,18 @@ def plot_decision_boundary(results, save_path: Path):
                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
     
     # Create legend
-    safe_patch = mpatches.Patch(color='#2ecc71', alpha=0.6, label='Safe Zone')
-    elim_patch = mpatches.Patch(color='#e74c3c', alpha=0.6, label='Elimination Zone')
+    safe_patch = mpatches.Patch(color=MORANDI_COLORS[0], alpha=0.85, label='Safe Zone')
+    elim_patch = mpatches.Patch(color=MORANDI_COLORS[1], alpha=0.85, label='Elimination Zone')
+    boundary_line = plt.Line2D([0], [0], color='black', linewidth=2, label='Survival Boundary')
+    prob_line = plt.Line2D([0], [0], color='black', linewidth=1.5, linestyle='--', label='50% Prob Boundary')
+    
     spicer_marker = plt.Line2D([0], [0], marker='X', color='w', markerfacecolor='darkred',
                                 markersize=12, label='Sean Spicer (Mediocrity)')
     ally_marker = plt.Line2D([0], [0], marker='*', color='w', markerfacecolor='blue',
                               markersize=15, label='Ally Brooke (Talent)')
     
-    fig.legend(handles=[safe_patch, elim_patch, spicer_marker, ally_marker],
-               loc='upper center', ncol=4, fontsize=11, bbox_to_anchor=(0.5, 0.02))
+    fig.legend(handles=[safe_patch, elim_patch, boundary_line, prob_line, spicer_marker, ally_marker],
+               loc='upper center', ncol=3, fontsize=10, bbox_to_anchor=(0.5, 0.02))
     
     plt.suptitle('S28 Week 6: The Geometry of Survival\n'
                  'Where Would a Virtual Contestant Land?', 
@@ -526,7 +584,7 @@ def run_diagnostics():
         
         # Print summary
         X, Y, Z_rank, Z_percent, Z_save, real = boundary_results
-        print(f"\n[SUMMARY] Safe Zone Coverage:")
+        print(f"\n[SUMMARY] Elimination Zone Coverage:")
         print(f"  - Rank System: {(1-Z_rank.mean())*100:.1f}%")
         print(f"  - Percent System: {(1-Z_percent.mean())*100:.1f}%")
         print(f"  - Rank+Save: {(1-Z_save.mean())*100:.1f}%")
