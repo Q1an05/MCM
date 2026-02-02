@@ -14,12 +14,11 @@ Date: 2026-02-01
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
 from tqdm import tqdm
 from typing import Tuple, List, Dict, Optional
 import warnings
+from viz_config import *
 
 warnings.filterwarnings('ignore')
 
@@ -45,10 +44,6 @@ LEARNING_RATE = 0.4
 EVIDENCE_BOOST = 5.0
 MIN_ALPHA = 0.1
 SKILL_IMPACT_FACTOR = 0.3
-
-# Plot style
-plt.style.use('seaborn-v0_8-whitegrid')
-sns.set_palette("husl")
 
 
 # =============================================================================
@@ -386,15 +381,16 @@ def plot_skill_bias_scatter(df_diagnostics: pd.DataFrame) -> None:
     # Create plot
     fig, ax = plt.subplots(figsize=(12, 8))
     
-    era_colors = {'Rank': '#e74c3c', 'Percent': '#3498db', 'Rank_With_Save': '#2ecc71'}
+    # Use updated academic color scheme for eras
     era_order = ['Rank', 'Percent', 'Rank_With_Save']
     
     for era in era_order:
         era_data = anomalies[anomalies['Era'] == era]
         if len(era_data) > 0:
             ax.scatter(era_data['Rational_Score_Z'], era_data['Normalized_Gap'],
-                       alpha=0.6, s=80, label=f'{era} Era (n={len(era_data)})',
-                       color=era_colors.get(era, '#95a5a6'), edgecolors='white', linewidth=0.5)
+                       alpha=0.75, s=100, label=f'{era} Era (n={len(era_data)})',
+                       color=ERA_COLORS.get(era, MORANDI_COLORS[6]), 
+                       edgecolors='white', linewidth=1.5)
     
     # Trend line
     x = anomalies['Rational_Score_Z'].values
@@ -404,46 +400,19 @@ def plot_skill_bias_scatter(df_diagnostics: pd.DataFrame) -> None:
         coefs = np.polyfit(x, y, 2)
         poly = np.poly1d(coefs)
         x_smooth = np.linspace(x.min(), x.max(), 100)
-        ax.plot(x_smooth, poly(x_smooth), 'k--', linewidth=2, alpha=0.7, label='Trend')
+        ax.plot(x_smooth, poly(x_smooth), '--', linewidth=2.5, alpha=0.8, 
+                label='Quadratic Trend', color=MORANDI_COLORS[0])
     except:
         pass
     
-    ax.set_xlabel('Rational Score (Z-score)\n<-- Weaker | Stronger -->', fontsize=12)
-    ax.set_ylabel('Normalized Survival Gap (0-1)', fontsize=12)
-    ax.set_title('Phase 2: Skill-Bias Scatter (Independent Normalization)\nAll Eras Visible', fontsize=14)
-    ax.legend(loc='upper right')
-    ax.grid(True, alpha=0.3)
+    style_axes(ax,
+               title='Phase 2: Skill-Bias Scatter (Independent Normalization)\nAll Eras Visible',
+               xlabel='Rational Score (Z-score)\n<-- Weaker | Stronger -->',
+               ylabel='Normalized Survival Gap (0-1)')
+    ax.legend(loc='upper right', fontsize=10, framealpha=0.9)
     
-    plt.tight_layout()
-    plt.clf()  # Clear buffer
-    
-    # Re-create and save fresh
-    fig, ax = plt.subplots(figsize=(12, 8))
-    for era in era_order:
-        era_data = anomalies[anomalies['Era'] == era]
-        if len(era_data) > 0:
-            ax.scatter(era_data['Rational_Score_Z'], era_data['Normalized_Gap'],
-                       alpha=0.6, s=80, label=f'{era} Era (n={len(era_data)})',
-                       color=era_colors.get(era, '#95a5a6'), edgecolors='white', linewidth=0.5)
-    
-    try:
-        coefs = np.polyfit(x, y, 2)
-        poly = np.poly1d(coefs)
-        x_smooth = np.linspace(x.min(), x.max(), 100)
-        ax.plot(x_smooth, poly(x_smooth), 'k--', linewidth=2, alpha=0.7, label='Trend')
-    except:
-        pass
-    
-    ax.set_xlabel('Rational Score (Z-score)\n<-- Weaker | Stronger -->', fontsize=12)
-    ax.set_ylabel('Normalized Survival Gap (0-1)', fontsize=12)
-    ax.set_title('Phase 2: Skill-Bias Scatter (Independent Normalization)\nAll Eras Visible', fontsize=14)
-    ax.legend(loc='upper right')
-    ax.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
     plot_path = CHAOS_PLOTS_DIR / "skill_bias_scatter.png"
-    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-    plt.close('all')
+    save_figure(fig, plot_path)
     
     print(f"   Saved: {plot_path}")
     
@@ -779,7 +748,8 @@ def plot_distribution_comparison(results_df: pd.DataFrame,
     """Plot optimization curves for all distributions on one chart."""
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))
     
-    colors = {'uniform': '#3498db', 'pareto': '#e74c3c', 'exponential': '#2ecc71'}
+    # Use Morandi accent colors for distributions
+    colors = {'uniform': MORANDI_ACCENT[1], 'pareto': MORANDI_ACCENT[0], 'exponential': MORANDI_ACCENT[2]}
     
     # Left plot: Top-1 Recall
     ax1 = axes[0]
@@ -847,7 +817,8 @@ def plot_explanation_certainty_curves(results_df: pd.DataFrame,
     1. Explanation Rate vs Lambda (for all 3 distributions)
     2. Certainty vs Lambda (for all 3 distributions)
     """
-    colors = {'uniform': '#3498db', 'pareto': '#e74c3c', 'exponential': '#2ecc71'}
+    # Use Morandi accent colors
+    colors = {'uniform': MORANDI_ACCENT[1], 'pareto': MORANDI_ACCENT[0], 'exponential': MORANDI_ACCENT[2]}
     
     # ==========================================================================
     # Plot 1: Explanation Rate vs Lambda
@@ -925,7 +896,8 @@ def plot_information_ratio(results_df: pd.DataFrame,
     IR = Explanation Rate / (1 - Certainty)
     Higher IR = better balance of coverage and confidence.
     """
-    colors = {'uniform': '#3498db', 'pareto': '#e74c3c', 'exponential': '#2ecc71'}
+    # Use Morandi accent colors
+    colors = {'uniform': MORANDI_ACCENT[1], 'pareto': MORANDI_ACCENT[0], 'exponential': MORANDI_ACCENT[2]}
     
     fig, ax = plt.subplots(figsize=(12, 7))
     
@@ -941,13 +913,13 @@ def plot_information_ratio(results_df: pd.DataFrame,
             label += ' (WINNER)'
         
         ax.plot(dist_data['lambda'], dist_data['ir'], 
-                'o-', linewidth=2.5, markersize=6, color=colors[dist], label=label)
+                'o-', linewidth=2.5, markersize=6, color=colors[dist], label=label, alpha=0.9)
         
         # Mark best point for this distribution
         best_lam = best_results[dist]['best_lambda']
         best_ir = best_results[dist]['ir']
         ax.scatter([best_lam], [best_ir], s=200, color=colors[dist], 
-                   edgecolors='black', linewidth=2.5, zorder=5)
+                   edgecolors='white', linewidth=2.5, zorder=5)
         
         # Track global best
         if best_ir > global_best_ir:
@@ -960,20 +932,18 @@ def plot_information_ratio(results_df: pd.DataFrame,
                 xy=(global_best_lam, global_best_ir),
                 xytext=(global_best_lam + 0.02, global_best_ir + 0.03),
                 fontsize=11, fontweight='bold',
-                arrowprops=dict(arrowstyle='->', color='black', lw=1.5),
-                bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.8))
+                arrowprops=dict(arrowstyle='->', color=MORANDI_COLORS[0], lw=2),
+                bbox=dict(boxstyle='round', facecolor=MORANDI_GRADIENT_WARM[1], 
+                         edgecolor=MORANDI_COLORS[0], alpha=0.9))
     
-    ax.set_xlabel('Chaos Weight (Lambda)', fontsize=13)
-    ax.set_ylabel('Information Ratio (IR)', fontsize=13)
-    ax.set_title('Information Ratio vs Lambda\nIR = Explanation Rate / (1 - Certainty)\nHigher = Better Balance of Coverage and Confidence', 
-                 fontsize=14)
-    ax.legend(loc='lower right', fontsize=11)
-    ax.grid(True, alpha=0.3)
+    style_axes(ax,
+               title='Information Ratio vs Lambda\nIR = Explanation Rate / (1 - Certainty)\nHigher = Better Balance of Coverage and Confidence',
+               xlabel='Chaos Weight (Lambda)',
+               ylabel='Information Ratio (IR)')
+    ax.legend(loc='lower right', fontsize=11, framealpha=0.9)
     
-    plt.tight_layout()
     plot_path = CHAOS_PLOTS_DIR / "information_ratio_vs_lambda.png"
-    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-    plt.close()
+    save_figure(fig, plot_path)
     print(f"   Saved: {plot_path}")
 
 

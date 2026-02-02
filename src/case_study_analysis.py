@@ -19,8 +19,8 @@ Date: 2026-02-02
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
+from viz_config import *
 
 # =============================================================================
 # Configuration
@@ -195,23 +195,29 @@ def plot_case_study_comparison(results_df):
         actual = row['Actual Week Num']
         new = row['New Week Num']
         
+        # Define colors - Use Morandi palette
+        color_actual = MORANDI_ACCENT[0]  # Rose brown for actual
+        color_new = MORANDI_ACCENT[1]     # Sky blue for new
+        
         # Draw line
-        ax.plot([actual, new], [i, i], color='gray', linestyle='--', zorder=1, alpha=0.7)
+        ax.plot([actual, new], [i, i], color=MORANDI_COLORS[5], linestyle='--', zorder=1, alpha=0.7, linewidth=2.5)
         
         # Plot points
         # Actual
-        ax.scatter(actual, i, color=color_actual, s=250, label='Actual Historical Exit' if i == 0 else "", zorder=3, edgecolors='black', linewidth=1.5)
+        ax.scatter(actual, i, color=color_actual, s=250, label='Actual Historical Exit' if i == 0 else "", zorder=3, edgecolors='white', linewidth=2)
         # New
-        ax.scatter(new, i, color=color_new, s=250, label='New DTPM Exit' if i == 0 else "", zorder=3, edgecolors='black', linewidth=1.5)
+        ax.scatter(new, i, color=color_new, s=250, label='New DTPM Exit' if i == 0 else "", zorder=3, edgecolors='white', linewidth=2)
         
         # Add labels - adjusted for clearer spacing
-        # Top label (New Result) - Move higher up (more negative relative to i)
+        # Top label (New Result)
         ax.text(new, i - 0.25, f"Result: Week {new}", 
-                ha='center', va='bottom', fontsize=10, color='darkblue', fontweight='bold')
+                ha='center', va='bottom', fontsize=10, 
+                color=MORANDI_ACCENT[1], fontweight='bold')
         
-        # Bottom label (Actual Result) - Move lower down (more positive relative to i)
+        # Bottom label (Actual Result)
         ax.text(actual, i + 0.25, f"Actual: {row['Actual Outcome']}\n(Week {actual})", 
-                ha='center', va='top', fontsize=10, color='darkred', weight='bold')
+                ha='center', va='top', fontsize=10, 
+                color=MORANDI_ACCENT[0], weight='bold')
 
         # Add "Saved" or "Cut" annotation - Center on line
         diff = new - actual
@@ -226,11 +232,15 @@ def plot_case_study_comparison(results_df):
 
         if diff < 0:
             ax.text(mid, text_y, f"{abs(diff)} Weeks Earlier", ha='center', va='center', 
-                    fontsize=9, color='red', weight='bold', backgroundcolor='white',
-                    bbox=dict(facecolor='white', edgecolor='none', alpha=0.7, pad=1))
+                    fontsize=9, color=MORANDI_ACCENT[0], weight='bold', 
+                    backgroundcolor='white',
+                    bbox=dict(facecolor='white', edgecolor=MORANDI_COLORS[0], 
+                             alpha=0.8, pad=2, boxstyle='round,pad=0.5'))
         elif diff > 0:
              ax.text(mid, text_y, f"+{diff} Weeks", ha='center', va='center',
-                     bbox=dict(facecolor='white', edgecolor='none', alpha=0.7, pad=1))
+                     fontsize=9, color=MORANDI_ACCENT[2], weight='bold',
+                     bbox=dict(facecolor='white', edgecolor=MORANDI_COLORS[3], 
+                              alpha=0.8, pad=2, boxstyle='round,pad=0.5'))
 
     # Formatting
     ax.set_yticks(y_pos)

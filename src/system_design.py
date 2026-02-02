@@ -16,10 +16,9 @@ Date: 2026-02-02
 import pandas as pd
 import numpy as np
 from scipy import stats
-import matplotlib.pyplot as plt
-import seaborn as sns
 from tqdm import tqdm
 from pathlib import Path
+from viz_config import *
 
 # =============================================================================
 # Configuration
@@ -201,38 +200,40 @@ def find_pareto_frontier(results_df):
     return results_df[pareto_mask]
 
 def plot_pareto(all_results, pareto_results):
-    plt.figure(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(12, 8))
     
-    # Scatter all points
-    plt.scatter(all_results['upset_rate'], all_results['kendall_tau'], 
-                c='lightgray', alpha=0.5, label='Simulation Scenarios')
+    # Scatter all points with Morandi neutral color
+    ax.scatter(all_results['upset_rate'], all_results['kendall_tau'], 
+                c=MORANDI_GRADIENT_NEUTRAL[1], alpha=0.4, s=30, 
+                label='Simulation Scenarios', edgecolors='none')
     
     # Highlight Pareto Frontier
-    # We plot Upset Rate on X, Tau on Y to show the curve naturally
     pareto_sorted = pareto_results.sort_values(by='upset_rate')
-    plt.plot(pareto_sorted['upset_rate'], pareto_sorted['kendall_tau'], 
-             c='red', linewidth=2, linestyle='--', label='Pareto Frontier')
-    plt.scatter(pareto_sorted['upset_rate'], pareto_sorted['kendall_tau'], 
-                c='red', s=50, zorder=5)
+    ax.plot(pareto_sorted['upset_rate'], pareto_sorted['kendall_tau'], 
+             c=MORANDI_ACCENT[0], linewidth=2.5, linestyle='--', 
+             label='Pareto Frontier', alpha=0.9)
+    ax.scatter(pareto_sorted['upset_rate'], pareto_sorted['kendall_tau'], 
+                c=MORANDI_ACCENT[0], s=80, zorder=5, edgecolors='white', linewidth=1.5)
     
     # Highlight Golden Zone
-    plt.axvspan(0.15, 0.25, color='gold', alpha=0.2, label='Golden Zone (15%-25% Upset)')
+    ax.axvspan(0.15, 0.25, color=MORANDI_GRADIENT_WARM[1], alpha=0.3, 
+               label='Golden Zone (15%-25% Upset)')
     
-    # Find Best Point (Closest to target within Frontier)
+    # Find Best Point
     best_point = pareto_results.loc[pareto_results['upset_diff'].idxmin()]
-    plt.scatter(best_point['upset_rate'], best_point['kendall_tau'], 
-                c='blue', s=150, marker='*', zorder=10, 
+    ax.scatter(best_point['upset_rate'], best_point['kendall_tau'], 
+                c=MORANDI_ACCENT[2], s=250, marker='*', zorder=10, 
+                edgecolors='white', linewidth=2,
                 label=f'Optimal: Beta={best_point["beta"]:.1f}, W_s={best_point["w_start"]:.2f}')
     
-    plt.xlabel('Upset Rate (Entertainment Factor)')
-    plt.ylabel("Kendall's Tau (Fairness Factor)")
-    plt.title('System Design: Trade-off between Fairness and Entertainment')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
+    style_axes(ax,
+               title='System Design: Trade-off between Fairness and Entertainment',
+               xlabel='Upset Rate (Entertainment Factor)',
+               ylabel="Kendall's Tau (Fairness Factor)")
+    ax.legend(framealpha=0.9, loc='best')
     
-    plot_path = PLOT_DIR / "system_optimization_pareto.png"
-    plt.savefig(plot_path)
-    print(f"[INFO] Plot saved to {plot_path}")
+    save_figure(fig, PLOT_DIR / "system_optimization_pareto.png")
+    print(f"[INFO] Plot saved to {PLOT_DIR / 'system_optimization_pareto.png'}")
 
 # =============================================================================
 # Main

@@ -45,6 +45,18 @@ Industries were classified into clusters based on 3 dimensions:
 - age_std: -0.1816 ***
 
 ## 5. Blind Voting Effect Analysis
-**Definition**: Seasons 3-27 (Percent Rule era) as 'Blind Voting' proxy.
+**Definition**: Seasons 28-30 (Live Vote era with time zone delay) as 'Blind Voting' proxy.
 
 ### Score-Vote Correlation by Era:
+- **Non-Blind Era**: r = 0.2290 (n=2465)
+- **Blind Era (S28-S30)**: r = 0.0132 (n=312)
+
+**Result**: Blind Era correlation is 94.2% weaker
+
+### Interaction Test (Score × BlindEra):
+- Coefficient: -3.1879
+- P-value: 0.0001 ✓
+
+### Interaction Test (Reputation × BlindEra):
+- Coefficient: 3.0628
+- P-value: 0.0102 ✓

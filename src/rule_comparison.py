@@ -18,13 +18,12 @@ Date: 2026-01-31
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from scipy.stats import spearmanr
 from pathlib import Path
 import warnings
 from typing import Tuple, Dict, List, Optional
 import random
+from viz_config import *
 
 warnings.filterwarnings('ignore')
 
@@ -45,9 +44,8 @@ ERA_MAP = {
     "Rank_With_Save": list(range(28, 35)) # Seasons 28-34
 }
 
-# Plot style
-plt.style.use('seaborn-v0_8-whitegrid')
-sns.set_palette("husl")
+# Plot style - using unified viz_config
+# (Morandi academic style auto-loaded)
 
 
 # =============================================================================
@@ -570,7 +568,6 @@ def plot_fan_bias_comparison(fpi: Dict[str, float]):
     Create bar chart of Fan Power Index by Era & Rule.
     """
     # Extract data for plotting
-    # We'll show overall FPI for each system, and maybe by era
     systems = ['Rank', 'Percent', 'Save']
     overall_values = [fpi.get(sys, 0.0) for sys in systems]
     
@@ -584,37 +581,41 @@ def plot_fan_bias_comparison(fpi: Dict[str, float]):
     # Plot 1: Overall FPI
     ax1 = axes[0]
     x_pos = np.arange(len(systems))
-    ax1.bar(x_pos, overall_values, color=['#3498db', '#2ecc71', '#e74c3c'])
-    ax1.set_xlabel('Rule System', fontsize=12)
-    ax1.set_ylabel('Fan Power Index (|Spearman ρ|)', fontsize=12)
-    ax1.set_title('Overall Fan Power Index\nHigher = More Fan Influence', fontsize=14)
+    # Use Morandi colors
+    bar_colors = [MORANDI_COLORS[0], MORANDI_COLORS[1], MORANDI_COLORS[3]]
+    ax1.bar(x_pos, overall_values, color=bar_colors, alpha=0.8, edgecolor='white', linewidth=1.5)
+    style_axes(ax1, 
+               title='Overall Fan Power Index\nHigher = More Fan Influence',
+               xlabel='Rule System', 
+               ylabel='Fan Power Index (|Spearman ρ|)')
     ax1.set_xticks(x_pos)
     ax1.set_xticklabels(systems)
     ax1.set_ylim(0, 1)
     # Add value labels
     for i, v in enumerate(overall_values):
-        ax1.text(i, v + 0.02, f'{v:.3f}', ha='center', fontsize=10)
+        ax1.text(i, v + 0.02, f'{v:.3f}', ha='center', fontsize=10, fontweight='bold')
     
     # Plot 2: FPI by Era
     ax2 = axes[1]
     width = 0.25
     x = np.arange(len(systems))
+    era_colors_morandi = [ERA_COLORS['Rank'], ERA_COLORS['Percent'], ERA_COLORS['Rank_With_Save']]
     for idx, (era, values) in enumerate(era_values.items()):
         offset = (idx - 1) * width
-        ax2.bar(x + offset, values, width, label=era, alpha=0.8)
+        ax2.bar(x + offset, values, width, label=era, alpha=0.85, 
+                color=era_colors_morandi[idx], edgecolor='white', linewidth=0.8)
     
-    ax2.set_xlabel('Rule System', fontsize=12)
-    ax2.set_ylabel('Fan Power Index (|Spearman ρ|)', fontsize=12)
-    ax2.set_title('Fan Power Index by Historical Era', fontsize=14)
+    style_axes(ax2, 
+               title='Fan Power Index by Historical Era',
+               xlabel='Rule System', 
+               ylabel='Fan Power Index (|Spearman ρ|)')
     ax2.set_xticks(x)
     ax2.set_xticklabels(systems)
     ax2.set_ylim(0, 1)
-    ax2.legend(title='Era')
+    ax2.legend(title='Era', framealpha=0.9)
     
     plt.tight_layout()
-    plt.savefig(PLOTS_DIR / "q2_fan_bias_comparison.png", dpi=300)
-    plt.close()
-    
+    save_figure(fig, PLOTS_DIR / "q2_fan_bias_comparison.png")
     print("[INFO] Saved fan bias comparison plot")
 
 
@@ -630,38 +631,43 @@ def plot_mediocrity_survival(survival_rates: Dict[str, float], talent_elim_rates
     
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
+    # Use Morandi colors
+    bar_colors = [MORANDI_COLORS[0], MORANDI_COLORS[1], MORANDI_COLORS[3]]
+    
     # Plot 1: Mediocrity Survival Rate (lower = more meritocratic)
     ax1 = axes[0]
-    bars1 = ax1.bar(systems, surv_values, color=['#3498db', '#2ecc71', '#e74c3c'])
-    ax1.set_title('Mediocrity Survival Rate\n(Bottom 3 Judge Scorers Survival Rate)\n↓ Lower = More Meritocratic', fontsize=12)
-    ax1.set_ylabel('Survival Rate (%)', fontsize=11)
-    ax1.set_xlabel('Rule System', fontsize=11)
+    bars1 = ax1.bar(systems, surv_values, color=bar_colors, alpha=0.8, edgecolor='white', linewidth=1.5)
+    style_axes(ax1,
+               title='Mediocrity Survival Rate\n(Bottom 3 Judge Scorers Survival Rate)\n↓ Lower = More Meritocratic',
+               xlabel='Rule System',
+               ylabel='Survival Rate (%)')
     ax1.set_ylim(0, 1)
     for i, v in enumerate(surv_values):
-        ax1.text(i, v + 0.02, f'{v:.2%}', ha='center', fontsize=10)
+        ax1.text(i, v + 0.02, f'{v:.2%}', ha='center', fontsize=10, fontweight='bold')
     # Highlight the best (lowest)
     min_idx = np.argmin(surv_values)
-    bars1[min_idx].set_edgecolor('gold')
+    bars1[min_idx].set_edgecolor(MORANDI_ACCENT[2])  # Mint green highlight
     bars1[min_idx].set_linewidth(3)
     
     # Plot 2: Talent Elimination Rate (lower = better talent protection)
     ax2 = axes[1]
-    bars2 = ax2.bar(systems, elim_values, color=['#3498db', '#2ecc71', '#e74c3c'])
-    ax2.set_title('Talent Elimination Rate\n(Top 3 Judge Scorers Elimination Rate)\n↓ Lower = Better Talent Protection', fontsize=12)
-    ax2.set_ylabel('Elimination Rate (%)', fontsize=11)
-    ax2.set_xlabel('Rule System', fontsize=11)
+    bars2 = ax2.bar(systems, elim_values, color=bar_colors, alpha=0.8, edgecolor='white', linewidth=1.5)
+    style_axes(ax2,
+               title='Talent Elimination Rate\n(Top 3 Judge Scorers Elimination Rate)\n↓ Lower = Better Talent Protection',
+               xlabel='Rule System',
+               ylabel='Elimination Rate (%)')
     ax2.set_ylim(0, max(elim_values) * 1.3 if max(elim_values) > 0 else 0.1)
     for i, v in enumerate(elim_values):
-        ax2.text(i, v + 0.002, f'{v:.2%}', ha='center', fontsize=10)
+        ax2.text(i, v + 0.002, f'{v:.2%}', ha='center', fontsize=10, fontweight='bold')
     # Highlight the best (lowest)
     min_idx = np.argmin(elim_values)
-    bars2[min_idx].set_edgecolor('gold')
+    bars2[min_idx].set_edgecolor(MORANDI_ACCENT[2])  # Mint green highlight
     bars2[min_idx].set_linewidth(3)
     
-    plt.suptitle('Merit-Based Evaluation: Which System Best Balances Talent vs Popularity?', fontsize=14, y=1.02)
+    fig.suptitle('Merit-Based Evaluation: Which System Best Balances Talent vs Popularity?', 
+                 fontsize=14, fontweight='bold', y=1.0)
     plt.tight_layout()
-    plt.savefig(PLOTS_DIR / "q2_merit_metrics.png", dpi=300, bbox_inches='tight')
-    plt.close()
+    save_figure(fig, PLOTS_DIR / "q2_merit_metrics.png")
     
     print("[INFO] Saved merit metrics plot (mediocrity survival + talent elimination)")
 

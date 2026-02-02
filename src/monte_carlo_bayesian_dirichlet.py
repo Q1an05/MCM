@@ -55,6 +55,7 @@ from typing import Tuple, Optional, Dict, List
 from dataclasses import dataclass
 import warnings
 from scipy.stats import entropy
+from viz_config import *
 
 warnings.filterwarnings('ignore')
 

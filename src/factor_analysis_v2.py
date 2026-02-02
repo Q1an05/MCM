@@ -20,14 +20,13 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
 from scipy import stats
 import warnings
+from viz_config import *
 warnings.filterwarnings('ignore')
 
 # =============================================================================
@@ -315,36 +314,40 @@ def visualize_k_selection(k_range, inertias, silhouettes, chosen_k):
     
     # Plot 1: Elbow Method
     ax1 = axes[0]
-    ax1.plot(list(k_range), inertias, 'bo-', linewidth=2, markersize=8)
-    ax1.axvline(x=chosen_k, color='red', linestyle='--', label=f'Chosen K={chosen_k}')
-    ax1.set_xlabel('Number of Clusters (K)', fontsize=12)
-    ax1.set_ylabel('Inertia (SSE)', fontsize=12)
-    ax1.set_title('Elbow Method for Optimal K', fontsize=14, fontweight='bold')
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
+    ax1.plot(list(k_range), inertias, 'o-', linewidth=2.5, markersize=8, 
+             color=MORANDI_ACCENT[1], markerfacecolor=MORANDI_ACCENT[1], 
+             markeredgecolor='white', markeredgewidth=1.5)
+    ax1.axvline(x=chosen_k, color=MORANDI_ACCENT[0], linestyle='--', linewidth=2, 
+                label=f'Chosen K={chosen_k}', alpha=0.8)
+    style_axes(ax1, 
+               title='Elbow Method for Optimal K',
+               xlabel='Number of Clusters (K)', 
+               ylabel='Inertia (SSE)')
+    ax1.legend(framealpha=0.9)
     
     # Plot 2: Silhouette Score
     ax2 = axes[1]
-    bars = ax2.bar(list(k_range), silhouettes, color='steelblue', alpha=0.7, edgecolor='navy')
+    bars = ax2.bar(list(k_range), silhouettes, 
+                   color=MORANDI_COLORS[1], alpha=0.7, 
+                   edgecolor='white', linewidth=1.2)
     
     # Highlight the best K
     best_idx = list(k_range).index(chosen_k)
-    bars[best_idx].set_color('green')
-    bars[best_idx].set_alpha(1.0)
+    bars[best_idx].set_color(MORANDI_ACCENT[2])  # Mint green for best
+    bars[best_idx].set_alpha(0.95)
     
-    ax2.axhline(y=max(silhouettes), color='green', linestyle='--', alpha=0.7)
-    ax2.set_xlabel('Number of Clusters (K)', fontsize=12)
-    ax2.set_ylabel('Silhouette Score', fontsize=12)
-    ax2.set_title('Silhouette Score for Different K', fontsize=14, fontweight='bold')
+    ax2.axhline(y=max(silhouettes), color=MORANDI_ACCENT[2], linestyle='--', alpha=0.7, linewidth=1.5)
+    style_axes(ax2,
+               title='Silhouette Score for Different K',
+               xlabel='Number of Clusters (K)',
+               ylabel='Silhouette Score')
     ax2.set_ylim(0, 1)
-    ax2.grid(True, alpha=0.3, axis='y')
     
     # Add value labels
     for i, (k, s) in enumerate(zip(k_range, silhouettes)):
-        ax2.text(k, s + 0.02, f'{s:.3f}', ha='center', fontsize=9)
+        ax2.text(k, s + 0.02, f'{s:.3f}', ha='center', fontsize=9, fontweight='bold')
     
-    plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / 'q3_optimal_k_selection.png', dpi=300)
+    save_figure(fig, OUTPUT_DIR / 'q3_optimal_k_selection.png')
     print(f"[INFO] K selection visualization saved to {OUTPUT_DIR / 'q3_optimal_k_selection.png'}")
 
 
@@ -352,25 +355,22 @@ def visualize_clusters(df_ind: pd.DataFrame, centers: np.ndarray, scaler: Standa
     """Visualize the K-Means clustering results."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
-    # Dynamic color palette for any number of clusters
-    color_palette = ['#3498db', '#e74c3c', '#2ecc71', '#95a5a6', '#9b59b6', '#f39c12', '#1abc9c', '#e67e22']
-    
-    # Get unique cluster names from data
+    # Use Morandi palette
     unique_clusters = df_ind['cluster_name'].unique()
-    colors = {name: color_palette[i % len(color_palette)] for i, name in enumerate(unique_clusters)}
+    colors = {name: get_color(i) for i, name in enumerate(unique_clusters)}
     
     ax1 = axes[0]
     for cluster_name in unique_clusters:
         subset = df_ind[df_ind['cluster_name'] == cluster_name]
         ax1.scatter(subset['performance'], subset['fanbase'], 
-                   c=colors.get(cluster_name, '#333'), label=cluster_name, 
-                   s=100, alpha=0.7, edgecolors='white')
+                   c=colors.get(cluster_name, MORANDI_COLORS[0]), label=cluster_name, 
+                   s=120, alpha=0.75, edgecolors='white', linewidth=1.5)
     
-    ax1.set_xlabel('Performance Score', fontsize=12)
-    ax1.set_ylabel('Fanbase Score', fontsize=12)
-    ax1.set_title(f'Industry Clustering (K={n_clusters}): Performance vs Fanbase', fontsize=14, fontweight='bold')
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
+    style_axes(ax1,
+               title=f'Industry Clustering (K={n_clusters}): Performance vs Fanbase',
+               xlabel='Performance Score',
+               ylabel='Fanbase Score')
+    ax1.legend(framealpha=0.9)
     
     # Plot 2: Bar chart of cluster centers
     ax2 = axes[1]
@@ -382,17 +382,19 @@ def visualize_clusters(df_ind: pd.DataFrame, centers: np.ndarray, scaler: Standa
     
     for i, center in enumerate(centers):
         name = cluster_name_list[i] if i < len(cluster_name_list) else f'Cluster {i}'
-        ax2.bar(x + i*width, center, width, label=name, color=colors.get(name, color_palette[i % len(color_palette)]), alpha=0.8)
+        ax2.bar(x + i*width, center, width, label=name, 
+                color=colors.get(name, get_color(i)), alpha=0.85, 
+                edgecolor='white', linewidth=1)
     
     ax2.set_xticks(x + width * (n_clusters - 1) / 2)
-    ax2.set_xticklabels(['Physicality', 'Performance', 'Fanbase'])
-    ax2.set_ylabel('Score (1-5)')
-    ax2.set_title(f'Cluster Profiles (K={n_clusters})', fontsize=14, fontweight='bold')
-    ax2.legend(loc='upper right')
+    ax2.set_xticklabels(['Physicality', 'Performance', 'Fanbase'], fontweight='bold')
+    style_axes(ax2,
+               title=f'Cluster Profiles (K={n_clusters})',
+               ylabel='Score (1-5)')
+    ax2.legend(loc='upper right', framealpha=0.9)
     ax2.set_ylim(0, 5.5)
     
-    plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / 'q3_industry_clustering.png', dpi=300)
+    save_figure(fig, OUTPUT_DIR / 'q3_industry_clustering.png')
     print(f"[INFO] Clustering visualization saved to {OUTPUT_DIR / 'q3_industry_clustering.png'}")
 
 
@@ -1202,22 +1204,32 @@ def generate_summary_report(df, df_growth, res_skill, res_pop, df_effects, blind
         # Add blind voting analysis
         if blind_results:
             f.write("\n## 5. Blind Voting Effect Analysis\n")
-            f.write("**Definition**: Seasons 3-27 (Percent Rule era) as 'Blind Voting' proxy.\n\n")
+            f.write("**Definition**: Seasons 28-30 (Live Vote era with time zone delay) as 'Blind Voting' proxy.\n\n")
             
             if 0 in blind_results and 1 in blind_results:
                 f.write("### Score-Vote Correlation by Era:\n")
-                f.write(f"- **Non-Blind Era**: r = {blind_results[0].get('correlation', 'N/A'):.4f} (n={blind_results[0].get('n', 0)})\n")
-                f.write(f"- **Blind Era**: r = {blind_results[1].get('correlation', 'N/A'):.4f} (n={blind_results[1].get('n', 0)})\n\n")
+                corr_0 = blind_results[0].get('corr_score', 0)
+                corr_1 = blind_results[1].get('corr_score', 0)
+                n_0 = blind_results[0].get('n', 0)
+                n_1 = blind_results[1].get('n', 0)
                 
-                if blind_results[0].get('correlation') and blind_results[1].get('correlation'):
-                    pct_weaker = (1 - blind_results[1]['correlation'] / blind_results[0]['correlation']) * 100
+                f.write(f"- **Non-Blind Era**: r = {corr_0:.4f} (n={n_0})\n")
+                f.write(f"- **Blind Era (S28-S30)**: r = {corr_1:.4f} (n={n_1})\n\n")
+                
+                if corr_0 != 0 and corr_1 != 0:
+                    pct_weaker = (1 - corr_1 / corr_0) * 100
                     f.write(f"**Result**: Blind Era correlation is {abs(pct_weaker):.1f}% {'weaker' if pct_weaker > 0 else 'stronger'}\n\n")
             
-            if 'interaction_pval' in blind_results:
-                sig = "✓" if blind_results.get('interaction_significant') else "✗"
+            if 'score_blind_pval' in blind_results:
+                sig = "✓" if blind_results.get('score_blind_pval', 1) < 0.05 else "✗"
                 f.write(f"### Interaction Test (Score × BlindEra):\n")
-                f.write(f"- Coefficient: {blind_results.get('interaction_coef', 0):.4f}\n")
-                f.write(f"- P-value: {blind_results.get('interaction_pval', 1):.4f} {sig}\n")
+                f.write(f"- Coefficient: {blind_results.get('score_blind_coef', 0):.4f}\n")
+                f.write(f"- P-value: {blind_results.get('score_blind_pval', 1):.4f} {sig}\n\n")
+                
+                sig_rep = "✓" if blind_results.get('rep_blind_pval', 1) < 0.05 else "✗"
+                f.write(f"### Interaction Test (Reputation × BlindEra):\n")
+                f.write(f"- Coefficient: {blind_results.get('rep_blind_coef', 0):.4f}\n")
+                f.write(f"- P-value: {blind_results.get('rep_blind_pval', 1):.4f} {sig_rep}\n")
     
     print(f"[INFO] Summary report saved to {report_path}")
 

@@ -14,12 +14,11 @@ Date: 2026-02-01
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.colors import ListedColormap
 from scipy.stats import entropy
 from pathlib import Path
 import warnings
+from viz_config import *
 
 warnings.filterwarnings('ignore')
 
@@ -33,9 +32,6 @@ BASE_DIR = Path(__file__).parent.parent
 DATA_PATH = BASE_DIR / "results" / "question1" / "full_simulation_bayesian.csv"
 PLOTS_DIR = BASE_DIR / "results" / "plots" / "question2"
 PLOTS_DIR.mkdir(parents=True, exist_ok=True)
-
-# Plot style
-plt.style.use('seaborn-v0_8-whitegrid')
 
 # Target contestants for stress test
 TARGET_MEDIOCRITY = "Sean Spicer"  # Low Judge, need to be eliminated
@@ -407,13 +403,13 @@ def plot_decision_boundary(results, save_path: Path):
     fig, axes = plt.subplots(1, 3, figsize=(20, 7))
     
     systems = [
-        ('System A: Rank', Z_rank, '#3498db'),
-        ('System B: Percent', Z_percent, '#2ecc71'),
-        ('System C: Rank+Save', Z_save, '#e74c3c')
+        ('System A: Rank', Z_rank, MORANDI_COLORS[0]),
+        ('System B: Percent', Z_percent, MORANDI_COLORS[1]),
+        ('System C: Rank+Save', Z_save, MORANDI_COLORS[3])
     ]
     
-    # Custom colormap: Green (safe) -> Red (eliminated)
-    cmap = ListedColormap(['#e74c3c', '#2ecc71'])
+    # Custom colormap: Red (eliminated) -> Green (safe) using Morandi colors
+    cmap = ListedColormap([MORANDI_ACCENT[0], MORANDI_ACCENT[2]])
     
     for ax, (title, Z, color) in zip(axes, systems):
         # Contour plot: Hard boundaries but with Monte Carlo "fuzziness"

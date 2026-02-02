@@ -15,10 +15,9 @@ Date: 2026-01-30
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
 import warnings
+from viz_config import *
 
 warnings.filterwarnings('ignore')
 
@@ -33,10 +32,6 @@ PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 BASIC_RESULTS_PATH = RESULTS_DIR / "question1" / "full_simulation_basic.csv"
 BAYESIAN_RESULTS_PATH = RESULTS_DIR / "question1" / "full_simulation_bayesian.csv"
 REPORT_PATH = RESULTS_DIR / "question1" / "model_comparison_report.md"
-
-# Plot style
-plt.style.use('seaborn-v0_8-whitegrid')
-sns.set_palette("husl")
 
 
 # =============================================================================
@@ -158,18 +153,18 @@ def plot_entropy_heatmap(raw_df: pd.DataFrame, season: int, model_name: str = 'B
     pivot_table = pivot_table.sort_values('mean_ent', ascending=False) # Most uncertain on top
     pivot_table = pivot_table.drop(columns='mean_ent')
     
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(pivot_table, cmap="YlGnBu", annot=True, fmt=".2f", cbar_kws={'label': 'Shannon Entropy (nats)'})
+    fig, ax = plt.subplots(figsize=(10, 8))
+    sns.heatmap(pivot_table, cmap='morandi_seq_blue', annot=True, fmt=".2f", 
+                cbar_kws={'label': 'Shannon Entropy (nats)'}, ax=ax,
+                linewidths=0.5, linecolor='white')
     
-    plt.title(f'Uncertainty Heatmap: Season {season} ({model_name} Mixture Model)\n'
-              f'High Entropy (Dark) = High Uncertainty/Latent Potential\n'
-              f'Low Entropy (Light) = Strict Constraints', fontsize=14)
-    plt.xlabel('Week Num', fontsize=12)
-    plt.ylabel('Contestant', fontsize=12)
+    style_axes(ax,
+               title=f'Uncertainty Heatmap: Season {season} ({model_name} Mixture Model)\nHigh Entropy (Dark) = High Uncertainty/Latent Potential\nLow Entropy (Light) = Strict Constraints',
+               xlabel='Week Num',
+               ylabel='Contestant',
+               grid=False)
     
-    plt.tight_layout()
-    plt.savefig(PLOTS_DIR / f"entropy_heatmap_S{season}.png", dpi=300)
-    plt.close()
+    save_figure(fig, PLOTS_DIR / f"entropy_heatmap_S{season}.png")
 
 
 def plot_explanation_rate(perf_df: pd.DataFrame):
@@ -207,30 +202,30 @@ def plot_explanation_rate(perf_df: pd.DataFrame):
     # Order: Percent -> Rank -> Rank_With_Save -> Overall
     rule_order = sorted(df['rule_system'].unique()) + ['Overall']
     
-    plt.figure(figsize=(12, 6))
-    ax = sns.barplot(
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.barplot(
         data=plot_data,
         x='rule_system', 
         y='Explanation Rate', 
         hue='model',
         order=rule_order,
-        palette=['#95a5a6', '#2ecc71'] # Gray for Basic, Green for Bayesian
+        palette=[MORANDI_COLORS[5], MORANDI_ACCENT[2]], # Smoke blue for Basic, Mint for Bayesian
+        ax=ax
     )
     
-    plt.title('Model Explanation Rate by Era & Overall (Higher is Better)', fontsize=14)
-    plt.ylabel('Explanation Rate (Valid Eliminations / Total Eliminations)', fontsize=12)
-    plt.xlabel('Rule System', fontsize=12)
-    plt.ylim(0, 1.15) # Give space for labels
+    style_axes(ax,
+               title='Model Explanation Rate by Era & Overall (Higher is Better)',
+               xlabel='Rule System',
+               ylabel='Explanation Rate (Valid Eliminations / Total Eliminations)')
+    ax.set_ylim(0, 1.15) # Give space for labels
     
     # Add value labels with correct formatting
     for container in ax.containers:
-        # Use lambda to format 0.992 as 99.2%
         labels = [f'{v.get_height():.1%}' for v in container]
-        ax.bar_label(container, labels=labels, padding=3, fontsize=10)
-        
-    plt.tight_layout()
-    plt.savefig(PLOTS_DIR / "explanation_rate_comparison.png", dpi=300)
-    plt.close()
+        ax.bar_label(container, labels=labels, padding=3, fontsize=10, fontweight='bold')
+    
+    ax.legend(framealpha=0.9)
+    save_figure(fig, PLOTS_DIR / "explanation_rate_comparison.png")
 
 
 def plot_certainty_distribution(perf_df: pd.DataFrame):
@@ -240,22 +235,23 @@ def plot_certainty_distribution(perf_df: pd.DataFrame):
     # Filter Only Explained weeks
     df = perf_df[perf_df['classification'] == 'Explained'].copy()
     
-    plt.figure(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
     sns.boxplot(
         data=df,
         x='rule_system',
         y='confidence',
         hue='model',
-        palette=['#95a5a6', '#2ecc71']
+        palette=[MORANDI_COLORS[5], MORANDI_ACCENT[2]],
+        ax=ax
     )
     
-    plt.title('Model Certainty Distribution (Explained Weeks Only)', fontsize=14)
-    plt.ylabel('Confidence (Valid Simulations / Total)', fontsize=12)
-    plt.xlabel('Rule System', fontsize=12)
+    style_axes(ax,
+               title='Model Certainty Distribution (Explained Weeks Only)',
+               xlabel='Rule System',
+               ylabel='Confidence (Valid Simulations / Total)')
+    ax.legend(framealpha=0.9)
     
-    plt.tight_layout()
-    plt.savefig(PLOTS_DIR / "certainty_distribution.png", dpi=300)
-    plt.close()
+    save_figure(fig, PLOTS_DIR / "certainty_distribution.png")
 
 
 def plot_stability_distribution(perf_df: pd.DataFrame):
@@ -266,22 +262,28 @@ def plot_stability_distribution(perf_df: pd.DataFrame):
     # Filter Only Explained weeks
     df = perf_df[perf_df['classification'] == 'Explained'].copy()
     
-    plt.figure(figsize=(10, 6))
+    # Check if avg_share_std column exists
+    if 'avg_share_std' not in df.columns:
+        print("[WARN] 'avg_share_std' column not found. Skipping stability distribution plot.")
+        return
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
     sns.boxplot(
         data=df,
         x='rule_system',
         y='avg_share_std',
         hue='model',
-        palette=['#95a5a6', '#2ecc71']
+        palette=[MORANDI_COLORS[5], MORANDI_ACCENT[2]],
+        ax=ax
     )
     
-    plt.title('Model Stability: Estimation Uncertainty (Lower is Better)', fontsize=14)
-    plt.ylabel('Avg Std Dev of Fan Share Estimate', fontsize=12)
-    plt.xlabel('Rule System', fontsize=12)
+    style_axes(ax,
+               title='Model Stability/Precision (Share Std Dev) - Lower is Better',
+               xlabel='Rule System',
+               ylabel='Share Standard Deviation')
+    ax.legend(framealpha=0.9)
     
-    plt.tight_layout()
-    plt.savefig(PLOTS_DIR / "stability_distribution.png", dpi=300)
-    plt.close()
+    save_figure(fig, PLOTS_DIR / "stability_distribution.png")
 
 
 def plot_entropy_distribution(perf_df: pd.DataFrame):
@@ -294,21 +296,23 @@ def plot_entropy_distribution(perf_df: pd.DataFrame):
     if df['avg_share_entropy'].isna().all():
         return
 
-    plt.figure(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
     sns.violinplot(
         data=df,
         x='rule_system',
         y='avg_share_entropy',
-        color='#2ecc71'
+        color=MORANDI_ACCENT[2],
+        ax=ax,
+        inner='box',
+        linewidth=1.5
     )
     
-    plt.title('Uncertainty Profile using Shannon Entropy (Bayesian Mixture Model)', fontsize=14)
-    plt.ylabel('Avg Shannon Entropy (nats)', fontsize=12)
-    plt.xlabel('Rule System', fontsize=12)
+    style_axes(ax,
+               title='Uncertainty Profile using Shannon Entropy (Bayesian Mixture Model)',
+               xlabel='Rule System',
+               ylabel='Avg Shannon Entropy (nats)')
     
-    plt.tight_layout()
-    plt.savefig(PLOTS_DIR / "entropy_distribution.png", dpi=300)
-    plt.close()
+    save_figure(fig, PLOTS_DIR / "entropy_distribution.png")
 
 
 def plot_fan_trajectory(basic_raw: pd.DataFrame, bayes_raw: pd.DataFrame, 
@@ -329,33 +333,34 @@ def plot_fan_trajectory(basic_raw: pd.DataFrame, bayes_raw: pd.DataFrame,
         print(f"[WARN] No data found for {celebrity_name} in Season {season}")
         return
 
-    plt.figure(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(12, 6))
     
     # Plot Basic
-    plt.plot(b_data['week'], b_data['estimated_fan_share'], 
-             label='Basic Model', color='#95a5a6', linestyle='--', marker='o')
-    plt.fill_between(b_data['week'], 
-                     b_data['estimated_fan_share'] - b_data['share_std'],
-                     b_data['estimated_fan_share'] + b_data['share_std'],
-                     color='#95a5a6', alpha=0.2)
+    ax.plot(b_data['week'], b_data['estimated_fan_share'], 
+            label='Basic Model', color=MORANDI_COLORS[5], linestyle='--', 
+            marker='o', linewidth=2, markersize=7, markeredgecolor='white', markeredgewidth=1)
+    ax.fill_between(b_data['week'], 
+                    b_data['estimated_fan_share'] - b_data['share_std'],
+                    b_data['estimated_fan_share'] + b_data['share_std'],
+                    color=MORANDI_COLORS[5], alpha=0.25)
     
     # Plot Bayesian
-    plt.plot(y_data['week'], y_data['estimated_fan_share'], 
-             label='Bayesian Model', color='#2ecc71', linewidth=2, marker='s')
-    plt.fill_between(y_data['week'], 
-                     y_data['estimated_fan_share'] - y_data['share_std'],
-                     y_data['estimated_fan_share'] + y_data['share_std'],
-                     color='#2ecc71', alpha=0.3)
+    ax.plot(y_data['week'], y_data['estimated_fan_share'], 
+            label='Bayesian Model', color=MORANDI_ACCENT[2], linewidth=2.5, 
+            marker='s', markersize=7, markeredgecolor='white', markeredgewidth=1)
+    ax.fill_between(y_data['week'], 
+                    y_data['estimated_fan_share'] - y_data['share_std'],
+                    y_data['estimated_fan_share'] + y_data['share_std'],
+                    color=MORANDI_ACCENT[2], alpha=0.3)
     
-    plt.title(f'Fan Share Trajectory: {celebrity_name} (Season {season})', fontsize=14)
-    plt.xlabel('Week', fontsize=12)
-    plt.ylabel('Estimated Fan Vote Share', fontsize=12)
-    plt.legend()
-    plt.grid(True, alpha=0.3)
+    style_axes(ax,
+               title=f'Fan Share Trajectory: {celebrity_name} (Season {season})',
+               xlabel='Week',
+               ylabel='Estimated Fan Vote Share')
+    ax.legend(framealpha=0.9, loc='best')
     
     safe_name = celebrity_name.replace(' ', '_')
-    plt.savefig(PLOTS_DIR / f"trajectory_{safe_name}_S{season}.png", dpi=300)
-    plt.close()
+    save_figure(fig, PLOTS_DIR / f"trajectory_{safe_name}_S{season}.png")
 
 
 def plot_dual_axis_entropy_share(raw_df: pd.DataFrame, celebrity_name: str, season: int):
@@ -383,40 +388,44 @@ def plot_dual_axis_entropy_share(raw_df: pd.DataFrame, celebrity_name: str, seas
     fig, ax1 = plt.subplots(figsize=(12, 6))
     
     # Trace 1: Fan Share (Left Axis)
-    color1 = '#2ecc71' # Green
-    ax1.set_xlabel('Week', fontsize=12)
-    ax1.set_ylabel('Estimated Fan Share (%)', color=color1, fontsize=12)
+    color1 = MORANDI_ACCENT[2]  # Mint green
+    ax1.set_xlabel('Week', fontsize=12, fontweight='bold')
+    ax1.set_ylabel('Estimated Fan Share (%)', color=color1, fontsize=12, fontweight='bold')
     l1 = ax1.plot(data['week'], data['estimated_fan_share'], color=color1, 
-             marker='o', linewidth=2, label='Fan Share')
+             marker='o', linewidth=2.5, markersize=8, label='Fan Share',
+             markeredgecolor='white', markeredgewidth=1.5)
     ax1.tick_params(axis='y', labelcolor=color1)
-    ax1.grid(True, alpha=0.3)
+    ax1.grid(True, alpha=0.25, linestyle='--')
     
     # Add fill for std dev
     ax1.fill_between(data['week'], 
                      data['estimated_fan_share'] - data['share_std'],
                      data['estimated_fan_share'] + data['share_std'],
-                     color=color1, alpha=0.1)
+                     color=color1, alpha=0.2)
 
     # Trace 2: Entropy (Right Axis)
     ax2 = ax1.twinx()
-    color2 = '#e74c3c' # Red
-    ax2.set_ylabel('Shannon Entropy (nats)\nHigh = Uncertain/Chaotic', color=color2, fontsize=12)
+    color2 = MORANDI_ACCENT[0]  # Rose brown
+    ax2.set_ylabel('Shannon Entropy (nats)\nHigh = Uncertain/Chaotic', 
+                   color=color2, fontsize=12, fontweight='bold')
     l2 = ax2.plot(data['week'], data['share_entropy'], color=color2, 
-             marker='s', linestyle='--', linewidth=2, label='Uncertainty (Entropy)')
+             marker='s', linestyle='--', linewidth=2.5, markersize=8, 
+             label='Uncertainty (Entropy)',
+             markeredgecolor='white', markeredgewidth=1.5)
     ax2.tick_params(axis='y', labelcolor=color2)
     ax2.grid(False) # Turn off grid for second axis to avoid clutter
     
     # Combined legend
     lines = l1 + l2
     labels = [l.get_label() for l in lines]
-    ax1.legend(lines, labels, loc='upper left')
+    ax1.legend(lines, labels, loc='upper left', framealpha=0.9)
 
-    plt.title(f'Case Study: {celebrity_name} (Season {season})\n'
-              f'Relationship between Fan Support and Model Uncertainty', fontsize=14)
+    fig.suptitle(f'Case Study: {celebrity_name} (Season {season})\n'
+              f'Relationship between Fan Support and Model Uncertainty', 
+              fontsize=14, fontweight='bold')
     
     safe_name = celebrity_name.replace(' ', '_')
-    plt.savefig(PLOTS_DIR / f"case_study_entropy_{safe_name}_S{season}.png", dpi=300)
-    plt.close()
+    save_figure(fig, PLOTS_DIR / f"case_study_entropy_{safe_name}_S{season}.png")
 
 
 # =============================================================================

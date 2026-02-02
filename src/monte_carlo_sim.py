@@ -24,6 +24,7 @@ from pathlib import Path
 from tqdm import tqdm
 from typing import Tuple, Optional
 import warnings
+from viz_config import *
 
 warnings.filterwarnings('ignore')
 
